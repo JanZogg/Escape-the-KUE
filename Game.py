@@ -4,6 +4,7 @@ HEIGHT = 675
 import pygame
 from pygame import Rect
 import time
+import quiz
 
 pygame.mouse.set_visible(False)
 
@@ -19,6 +20,7 @@ item_high_pos = None
 item_large_pos = None
 TIMER_DURATION = 60 * 60
 timer_start = None
+quiz_overlay = None
 
 #Item Actors
 r_pacman = Actor("pacman", (855, 312)) #r = Rätsel
@@ -50,7 +52,7 @@ invis_magnifier = Actor("magnifier2")
 
 #Programm
 def update():
-    global offset_x, game_started, mouse_move_pos, item_large_pos, item_high_pos, move, mouse_klick_pos, mouse_move_pos, speed
+    global offset_x, game_started, mouse_move_pos, item_large_pos, item_high_pos, move, mouse_klick_pos, mouse_move_pos, speed, quiz_overlay
 
     if game_started:
         if keyboard.A and move:
@@ -92,6 +94,8 @@ def update():
 
                 if invis_magnifier.colliderect(item_rect1) or invis_magnifier.colliderect(item_rect2):
                     item_large_pos = i
+                    if i == 0 and quiz_overlay is None:
+                        quiz_overlay = quiz.NumberCombinationQuiz(WIDTH, HEIGHT)
                     break
         mouse_klick_pos = (0, 0)
         if item_large_pos != None:
@@ -107,12 +111,26 @@ def on_mouse_move(pos):
     mouse_move_pos = pos
 
 def on_mouse_down(pos):
-    global mouse_klick_pos
+    global mouse_klick_pos, item_large_pos, quiz_overlay
+
+    if quiz_overlay is not None:
+        quiz_overlay.handle_mouse_down(pos)
+        if quiz_overlay.solved:
+            item_large_pos = None
+            quiz_overlay = None
+        return
 
     mouse_klick_pos = pos
 
 def on_key_down(key):
-    global game_started, room_index, room, timer_start
+    global game_started, room_index, room, timer_start, quiz_overlay
+
+    if quiz_overlay is not None:
+        if key == keys.ESCAPE:
+            quiz_overlay = None
+            return
+        quiz_overlay.handle_key_down(key)
+        return
 
     if not game_started and keyboard.s:
         game_started = True
@@ -143,8 +161,12 @@ def draw():
                 screen.blit(leucht.image, (item.x - offset_x + room_actor.width, item.y))
         if item_large_pos is not None:
             items_large[item_large_pos].draw()
-        if not move:
+        if not move and quiz_overlay is None:
             screen.draw.text("Um fortzufahren, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
+
+        if quiz_overlay is not None:
+            quiz_overlay.draw(screen)
+            screen.draw.text("ESC schliesst Quiz", center=(600, 85), fontsize=34, color="white")
 
         #ChatGPT
         if timer_start is not None:
