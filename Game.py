@@ -4,6 +4,7 @@ HEIGHT = 675
 import pygame
 from pygame import Rect
 import time
+import quiz
 
 pygame.mouse.set_visible(False)
 
@@ -19,6 +20,8 @@ item_high_pos = None
 item_large_pos = None
 TIMER_DURATION = 60 * 60
 timer_start = None
+QUIZ_ITEM_INDEX = 1
+QUIZ_NAME_ROOM1_ITEM1 = "room1_item1"
 
 #Item Actors
 q_pacman = Actor("pacman", (855, 312)) #r = Rätsel
@@ -53,12 +56,13 @@ def update():
     global offset_x, game_started, mouse_move_pos, item_large_pos, item_high_pos, move, mouse_klick_pos, mouse_move_pos, speed
 
     if game_started:
-        if keyboard.A and move:
+        quiz_offen = quiz.ist_offen()
+        if keyboard.A and move and not quiz_offen:
             speed = speed * 1.005
             offset_x -= speed
             if speed > 10:
                 speed = 10
-        elif keyboard.D and move:
+        elif keyboard.D and move and not quiz_offen:
             offset_x += speed
             speed = speed * 1.005
             if speed > 10:
@@ -69,7 +73,7 @@ def update():
         magnifier.pos = mouse_move_pos
         invis_magnifier.pos = mouse_klick_pos
         item_high_pos = None
-        if move:
+        if move and not quiz_offen:
             for i, item in enumerate(items):
 
                 #ChatGPT
@@ -91,15 +95,25 @@ def update():
                 item_rect2 = Rect((item.x - offset_x + room_actor.width, item.y),(item.width, item.height))
 
                 if invis_magnifier.colliderect(item_rect1) or invis_magnifier.colliderect(item_rect2):
-                    item_large_pos = i
+                    #Das zweite Item oeffnet zuerst das Quiz.
+                    if i == QUIZ_ITEM_INDEX and not quiz.ist_geloest(QUIZ_NAME_ROOM1_ITEM1):
+                        quiz.oeffnen(QUIZ_NAME_ROOM1_ITEM1)
+                        item_large_pos = None
+                    else:
+                        item_large_pos = i
                     break
         mouse_klick_pos = (0, 0)
-        if item_large_pos != None:
+        if quiz.ist_offen():
+            move = False
+        elif item_large_pos != None:
             move = False
         elif item_large_pos == None:
             move = True
     if keyboard.ESCAPE:
-        item_large_pos = None
+        if quiz.ist_offen():
+            quiz.schliessen()
+        else:
+            item_large_pos = None
 
 def on_mouse_move(pos):
     global mouse_move_pos
@@ -109,10 +123,29 @@ def on_mouse_move(pos):
 def on_mouse_down(pos):
     global mouse_klick_pos
 
-    mouse_klick_pos = pos
+    if not quiz.ist_offen():
+        mouse_klick_pos = pos
+
+def quiz_taste_von_key(key):
+    #Game.py uebersetzt Pygame-Zero-Tasten fuer quiz.py.
+    if key == pygame.K_1 or key == pygame.K_KP1:
+        return "1"
+    if key == pygame.K_2 or key == pygame.K_KP2:
+        return "2"
+    if key == pygame.K_3 or key == pygame.K_KP3:
+        return "3"
+    if key == pygame.K_ESCAPE:
+        return "escape"
+    return None
 
 def on_key_down(key):
     global game_started, room_index, room, timer_start
+
+    if quiz.ist_offen():
+        quiz_taste = quiz_taste_von_key(key)
+        if quiz_taste is not None:
+            quiz.taste_druecken(quiz_taste)
+        return
 
     if not game_started and keyboard.s:
         game_started = True
@@ -133,8 +166,8 @@ def draw():
         screen.blit(room_actor.image, (room_actor.width - offset_x, 0))
         screen.blit(q_pacman.image, (q_pacman.x - offset_x, q_pacman.y))
         screen.blit(q_pacman.image, (q_pacman.x - offset_x + room_actor.width, q_pacman.y))
-        screen.blit(q_room1_item1.image, (q_raum1_item1.x - offset_x,q_room1_item1.y))
-        screen.blit(q_room1_item1.image, (q_raum1_item1.x - offset_x + room_actor.width,q_room1_item1.y))
+        screen.blit(q_room1_item1.image, (q_room1_item1.x - offset_x,q_room1_item1.y))
+        screen.blit(q_room1_item1.image, (q_room1_item1.x - offset_x + room_actor.width,q_room1_item1.y))
         if move:
             if item_high_pos is not None:
                 item = items[item_high_pos]
@@ -143,6 +176,8 @@ def draw():
                 screen.blit(leucht.image, (item.x - offset_x + room_actor.width, item.y))
         if item_large_pos is not None:
             items_large[item_large_pos].draw()
+            if item_large_pos == QUIZ_ITEM_INDEX and quiz.ist_geloest(QUIZ_NAME_ROOM1_ITEM1):
+                screen.draw.text("Raetsel geloest", center=(600, 590), fontsize=40, color="yellow")
         if not move:
             screen.draw.text("Um fortzufahren, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
 
@@ -158,3 +193,4 @@ def draw():
         screen.draw.text(timer_text, topleft=(20, 20), fontsize=40, color="white", fontname="clock")
 
         magnifier.draw()
+        quiz.zeichnen(screen, WIDTH, HEIGHT)
