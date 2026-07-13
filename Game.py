@@ -193,4 +193,4 @@ def draw():
         screen.draw.text(timer_text, topleft=(20, 20), fontsize=40, color="white", fontname="clock")
 
         magnifier.draw()
-        quiz.zeichnen(screen, WIDTH, HEIGHT)
+        quiz.zeichnen(screen, WIDTH, HEIGHT, Rect)

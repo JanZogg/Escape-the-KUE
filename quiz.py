@@ -66,7 +66,7 @@ def taste_druecken(taste):
         meldung = "Falsch, versuche es nochmals"
 
 
-def zeichnen(screen, breite, hoehe):
+def zeichnen(screen, breite, hoehe, rect_klasse):
     if offenes_quiz is None:
         return
 
@@ -76,9 +76,10 @@ def zeichnen(screen, breite, hoehe):
     box_x = (breite - box_breite) // 2
     box_y = (hoehe - box_hoehe) // 2
 
-    #Das Quiz zeichnet nur mit dem uebergebenen screen.
-    screen.draw.filled_rect((box_x, box_y, box_breite, box_hoehe), (20, 20, 20))
-    screen.draw.rect((box_x, box_y, box_breite, box_hoehe), "white")
+    #Pygame Zero braucht hier ein echtes Rect-Objekt.
+    quiz_box = rect_klasse((box_x, box_y), (box_breite, box_hoehe))
+    screen.draw.filled_rect(quiz_box, (20, 20, 20))
+    screen.draw.rect(quiz_box, "white")
     screen.draw.text(frage["frage"], center=(breite / 2, box_y + 55), fontsize=42, color="white")
 
     y = box_y + 120
