@@ -22,7 +22,7 @@ timer_start = None
 
 #Item Actors
 q_pacman = Actor("pacman", (855, 312)) #r = Rätsel
-q_raum1_item1 = Actor("room1_item1", (923,315))
+q_room1_item1 = Actor("room1_item1", (923,315))
 
 #Listen
 room = [
@@ -32,7 +32,7 @@ room = [
 #door = [Actor("...", (0,0))]
 items = [
     q_pacman,
-    q_raum1_item1
+    q_room1_item1
     ]
 items_high = [
     Actor("pacman_leuchtend"),
@@ -133,8 +133,8 @@ def draw():
         screen.blit(room_actor.image, (room_actor.width - offset_x, 0))
         screen.blit(q_pacman.image, (q_pacman.x - offset_x, q_pacman.y))
         screen.blit(q_pacman.image, (q_pacman.x - offset_x + room_actor.width, q_pacman.y))
-        screen.blit(q_raum1_item1.image, (q_raum1_item1.x - offset_x,q_raum1_item1.y))
-        screen.blit(q_raum1_item1.image, (q_raum1_item1.x - offset_x + room_actor.width,q_raum1_item1.y))
+        screen.blit(q_room1_item1.image, (q_raum1_item1.x - offset_x,q_room1_item1.y))
+        screen.blit(q_room1_item1.image, (q_raum1_item1.x - offset_x + room_actor.width,q_room1_item1.y))
         if move:
             if item_high_pos is not None:
                 item = items[item_high_pos]
