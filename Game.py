@@ -21,7 +21,6 @@ item_large_pos = None
 timer_duration = 60 * 60
 timer_start = None
 quiz_item_index = 1
-QUIZ_NAME_ROOM1_ITEM1 = "room1_item1"
 
 #Item Actors
 q_pacman = Actor("pacman", (855, 312)) #r = Rätsel
@@ -47,12 +46,24 @@ items_large = [
     ]
 quiz_items = {
     1: "room1_item1"
-}
+    }
 
 #Actors
 room_actor = Actor(room[room_index])
 magnifier = Actor("magnifier")
 invis_magnifier = Actor("magnifier2")
+
+def item_rects(item):
+    return [
+        Rect((item.x - offset_x, item.y), (item.width, item.height)),
+        Rect((item.x - offset_x + room_actor.width, item.y), (item.width, item.height))
+    ]
+
+def actor_collides_with_item(item, actor):
+    for item_rect in item_rects(item):
+        if actor.colliderect(item_rect):
+            return True
+    return False
 
 #Programm
 def update():
@@ -78,27 +89,11 @@ def update():
         item_high_pos = None
         if move and not quiz_offen:
             for i, item in enumerate(items):
-
-                #ChatGPT
-                item_rect1 = Rect(
-                    (item.x - offset_x, item.y),
-                    (item.width, item.height)
-                )
-                item_rect2 = Rect(
-                    (item.x - offset_x + room_actor.width, item.y),
-                    (item.width, item.height)
-                )
-                #bis hier
-                if magnifier.colliderect(item_rect1) or magnifier.colliderect(item_rect2):
+                if actor_collides_with_item(item, magnifier):
                     item_high_pos = i
                     break
             for i, item in enumerate(items):
-
-                item_rect1 = Rect((item.x - offset_x, item.y),(item.width, item.height))
-                item_rect2 = Rect((item.x - offset_x + room_actor.width, item.y),(item.width, item.height))
-
-                if invis_magnifier.colliderect(item_rect1) or invis_magnifier.colliderect(item_rect2):
-                    #Das zweite Item oeffnet zuerst das Quiz.
+                if actor_collides_with_item(item, invis_magnifier):
                     if i in quiz_items and not quiz.ist_geloest(quiz_items[i]):
                         quiz.oeffnen(quiz_items[i])
                         item_large_pos = None
@@ -169,9 +164,9 @@ def standard_box(x, y, width, height):
 
     pygame.draw.rect(
         screen.surface,
-        (200, 40, 40),
+        (120, 120, 120),
         box,
-        width=4
+        width=2
     )
 
     return box
@@ -201,7 +196,7 @@ def draw():
         if not move:
             screen.draw.text("Um fortzufahren, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
 
-        #ChatGPT
+        #Timer erstellt mit ChatGPT
         if timer_start is not None:
             verbleibend = max(0, timer_duration - int(time.time() - timer_start))
         else:
@@ -210,7 +205,11 @@ def draw():
         minuten = (verbleibend % 3600) // 60
         sekunden = verbleibend % 60
         timer_text = f"{stunden:02}:{minuten:02}:{sekunden:02}"
+        standard_box(10, 12, 275, 55)
         screen.draw.text(timer_text, topleft=(20, 20), fontsize=40, color="white", fontname="clock")
+
+        #Hotbar
+        standard_box(350, 600, 500, 55)
 
         magnifier.draw()
         quiz.zeichnen(screen, WIDTH, HEIGHT, Rect)
