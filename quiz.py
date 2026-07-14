@@ -1,11 +1,10 @@
-#Einfaches Quiz-Modul fuer Raetselgegenstaende
-fragen = {
+raetsel = {
     "room1_item1": {
-        "frage": "Welche Antwort ist richtig?",
+        "frage": "Wie Gross ist der Inneninkel von Pacmans Mund?",
         "antworten": [
-            "Antwort 1",
-            "Antwort 2",
-            "Antwort 3"
+            "45°",
+            "90°",
+            "135°"
         ],
         "richtig": 2
     }
@@ -55,7 +54,7 @@ def taste_druecken(taste):
     if taste not in ["1", "2", "3"]:
         return
 
-    frage = fragen[offenes_quiz]
+    frage = raetsel[offenes_quiz]
     gewaehlte_antwort = int(taste)
 
     if gewaehlte_antwort == frage["richtig"]:
@@ -70,7 +69,7 @@ def zeichnen(screen, breite, hoehe, rect_klasse):
     if offenes_quiz is None:
         return
 
-    frage = fragen[offenes_quiz]
+    frage = raetsel[offenes_quiz]
     box_breite = 760
     box_hoehe = 360
     box_x = (breite - box_breite) // 2

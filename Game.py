@@ -18,9 +18,9 @@ mouse_move_pos = (0, 0)
 mouse_klick_pos = (0, 0)
 item_high_pos = None
 item_large_pos = None
-TIMER_DURATION = 60 * 60
+timer_duration = 60 * 60
 timer_start = None
-QUIZ_ITEM_INDEX = 1
+quiz_item_index = 1
 QUIZ_NAME_ROOM1_ITEM1 = "room1_item1"
 
 #Item Actors
@@ -45,6 +45,9 @@ items_large = [
     Actor("pacman_gross", (600, 337.5)),
     Actor("room1_big1", (600, 337.5))
     ]
+quiz_items = {
+    1: "room1_item1"
+}
 
 #Actors
 room_actor = Actor(room[room_index])
@@ -96,8 +99,8 @@ def update():
 
                 if invis_magnifier.colliderect(item_rect1) or invis_magnifier.colliderect(item_rect2):
                     #Das zweite Item oeffnet zuerst das Quiz.
-                    if i == QUIZ_ITEM_INDEX and not quiz.ist_geloest(QUIZ_NAME_ROOM1_ITEM1):
-                        quiz.oeffnen(QUIZ_NAME_ROOM1_ITEM1)
+                    if i in quiz_items and not quiz.ist_geloest(quiz_items[i]):
+                        quiz.oeffnen(quiz_items[i])
                         item_large_pos = None
                     else:
                         item_large_pos = i
@@ -176,16 +179,16 @@ def draw():
                 screen.blit(leucht.image, (item.x - offset_x + room_actor.width, item.y))
         if item_large_pos is not None:
             items_large[item_large_pos].draw()
-            if item_large_pos == QUIZ_ITEM_INDEX and quiz.ist_geloest(QUIZ_NAME_ROOM1_ITEM1):
+            if item_large_pos in quiz_items and quiz.ist_geloest(quiz_items[item_large_pos]):
                 screen.draw.text("Raetsel geloest", center=(600, 590), fontsize=40, color="yellow")
         if not move:
             screen.draw.text("Um fortzufahren, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
 
         #ChatGPT
         if timer_start is not None:
-            verbleibend = max(0, TIMER_DURATION - int(time.time() - timer_start))
+            verbleibend = max(0, timer_duration - int(time.time() - timer_start))
         else:
-            verbleibend = TIMER_DURATION
+            verbleibend = timer_duration
         stunden = verbleibend // 3600
         minuten = (verbleibend % 3600) // 60
         sekunden = verbleibend % 60
