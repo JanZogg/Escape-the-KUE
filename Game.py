@@ -159,12 +159,29 @@ def on_key_down(key):
             room_index = room_index + 1
             room_actor.image = room[room_index]
 
+def standard_box(x, y, width, height):
+    box = Rect(x, y, width, height)
+
+    box_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+    box_surface.fill((150,150,150,170))
+
+    screen.surface.blit(box_surface, (x, y))
+
+    pygame.draw.rect(
+        screen.surface,
+        (200, 40, 40),
+        box,
+        width=4
+    )
+
+    return box
+
+
 def draw():
     if not game_started:
         screen.blit("start", (0, 0))
     else:
         screen.clear()
-
         screen.blit(room_actor.image, (0 - offset_x, 0))
         screen.blit(room_actor.image, (room_actor.width - offset_x, 0))
         screen.blit(q_pacman.image, (q_pacman.x - offset_x, q_pacman.y))
