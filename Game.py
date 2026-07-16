@@ -21,6 +21,9 @@ item_large_pos = None
 timer_duration = 60 * 60
 timer_start = None
 quiz_item_index = 1
+sekunden = ""
+minuten = ""
+stunden = ""
 
 #Item Actors
 q_pacman = Actor("pacman", (855, 312)) #r = Rätsel
@@ -35,6 +38,10 @@ room = [
 items = [
     q_pacman,
     q_room1_item1
+    ]
+items_room = [
+    0, #q_pacamn im Raum 0
+    0 #q_room1_item1 im Raum 0
     ]
 items_high = [
     Actor("pacman_leuchtend"),
@@ -67,6 +74,7 @@ def actor_collides_with_item(item, actor):
 
 #Programm
 def update():
+    print(magnifier.pos)
     global offset_x, game_started, item_large_pos, item_high_pos, move, mouse_klick_pos, mouse_move_pos, speed
 
     if game_started:
@@ -91,10 +99,14 @@ def update():
 
         if move and not quiz_offen:
             for i, item in enumerate(items):
+                if items_room[i] != room_index:
+                    continue
                 if actor_collides_with_item(item, magnifier):
                     item_high_pos = i
                     break
             for i, item in enumerate(items):
+                if items_room[i] != room_index:
+                    continue
                 if actor_collides_with_item(item, invis_magnifier):
                     if i in quiz_items and not quiz.quiz_is_solved(quiz_items[i]):
                         quiz.open_quiz(quiz_items[i])
@@ -175,10 +187,11 @@ def draw():
         screen.clear()
         screen.blit(room_actor.image, (0 - offset_x, 0))
         screen.blit(room_actor.image, (room_actor.width - offset_x, 0))
-        screen.blit(q_pacman.image, (q_pacman.x - offset_x, q_pacman.y))
-        screen.blit(q_pacman.image, (q_pacman.x - offset_x + room_actor.width, q_pacman.y))
-        screen.blit(q_room1_item1.image, (q_room1_item1.x - offset_x,q_room1_item1.y))
-        screen.blit(q_room1_item1.image, (q_room1_item1.x - offset_x + room_actor.width,q_room1_item1.y))
+        if room_index == 0:
+            screen.blit(q_pacman.image, (q_pacman.x - offset_x, q_pacman.y))
+            screen.blit(q_pacman.image, (q_pacman.x - offset_x + room_actor.width, q_pacman.y))
+            screen.blit(q_room1_item1.image, (q_room1_item1.x - offset_x,q_room1_item1.y))
+            screen.blit(q_room1_item1.image, (q_room1_item1.x - offset_x + room_actor.width,q_room1_item1.y))
         if move:
             if item_high_pos is not None:
                 item = items[item_high_pos]
@@ -206,6 +219,7 @@ def draw():
 
         #Hotbar
         standard_box(350, 600, 500, 55)
-
+        if quiz.quiz_is_solved("room1_item1"):
+            screen.blit("roomkey1", (352.5, 602.5))
         magnifier.draw()
         quiz.draw_quiz(screen, WIDTH, HEIGHT, Rect, standard_box)
