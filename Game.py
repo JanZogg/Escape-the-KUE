@@ -67,10 +67,10 @@ def actor_collides_with_item(item, actor):
 
 #Programm
 def update():
-    global offset_x, game_started, mouse_move_pos, item_large_pos, item_high_pos, move, mouse_klick_pos, mouse_move_pos, speed
+    global offset_x, game_started, item_large_pos, item_high_pos, move, mouse_klick_pos, mouse_move_pos, speed
 
     if game_started:
-        quiz_offen = quiz.ist_offen()
+        quiz_offen = quiz.quiz_is_open()
         if keyboard.A and move and not quiz_offen:
             speed = speed * 1.005
             offset_x -= speed
@@ -83,10 +83,12 @@ def update():
                 speed = 10
         else:
             speed = 5
+
         offset_x %= room_actor.width #ChatGPT hat mir die Formel %= gegeben
         magnifier.pos = mouse_move_pos
         invis_magnifier.pos = mouse_klick_pos
         item_high_pos = None
+
         if move and not quiz_offen:
             for i, item in enumerate(items):
                 if actor_collides_with_item(item, magnifier):
@@ -94,22 +96,23 @@ def update():
                     break
             for i, item in enumerate(items):
                 if actor_collides_with_item(item, invis_magnifier):
-                    if i in quiz_items and not quiz.ist_geloest(quiz_items[i]):
-                        quiz.oeffnen(quiz_items[i])
+                    if i in quiz_items and not quiz.quiz_is_solved(quiz_items[i]):
+                        quiz.open_quiz(quiz_items[i])
                         item_large_pos = None
                     else:
                         item_large_pos = i
                     break
+
         mouse_klick_pos = (0, 0)
-        if quiz.ist_offen():
+        if quiz.quiz_is_open():
             move = False
         elif item_large_pos != None:
             move = False
         elif item_large_pos == None:
             move = True
     if keyboard.ESCAPE:
-        if quiz.ist_offen():
-            quiz.schliessen()
+        if quiz.quiz_is_open():
+            quiz.close_quiz()
         else:
             item_large_pos = None
 
@@ -121,11 +124,10 @@ def on_mouse_move(pos):
 def on_mouse_down(pos):
     global mouse_klick_pos
 
-    if not quiz.ist_offen():
+    if not quiz.quiz_is_open():
         mouse_klick_pos = pos
 
 def quiz_taste_von_key(key):
-    #Game.py uebersetzt Pygame-Zero-Tasten fuer quiz.py.
     if key == pygame.K_1 or key == pygame.K_KP1:
         return "1"
     if key == pygame.K_2 or key == pygame.K_KP2:
@@ -139,16 +141,14 @@ def quiz_taste_von_key(key):
 def on_key_down(key):
     global game_started, room_index, room, timer_start
 
-    if quiz.ist_offen():
+    if quiz.quiz_is_open():
         quiz_taste = quiz_taste_von_key(key)
         if quiz_taste is not None:
-            quiz.taste_druecken(quiz_taste)
+            quiz.press_key(quiz_taste)
         return
-
     if not game_started and keyboard.s:
         game_started = True
         timer_start = time.time()
-
     if game_started:
         if keyboard.P:
             room_index = room_index + 1
@@ -156,10 +156,8 @@ def on_key_down(key):
 
 def standard_box(x, y, width, height):
     box = Rect(x, y, width, height)
-
     box_surface = pygame.Surface((width, height), pygame.SRCALPHA)
     box_surface.fill((150,150,150,170))
-
     screen.surface.blit(box_surface, (x, y))
 
     pygame.draw.rect(
@@ -168,9 +166,7 @@ def standard_box(x, y, width, height):
         box,
         width=2
     )
-
     return box
-
 
 def draw():
     if not game_started:
@@ -191,7 +187,7 @@ def draw():
                 screen.blit(leucht.image, (item.x - offset_x + room_actor.width, item.y))
         if item_large_pos is not None:
             items_large[item_large_pos].draw()
-            if item_large_pos in quiz_items and quiz.ist_geloest(quiz_items[item_large_pos]):
+            if item_large_pos in quiz_items and quiz.quiz_is_solved(quiz_items[item_large_pos]):
                 screen.draw.text("Raetsel geloest", center=(600, 590), fontsize=40, color="yellow")
         if not move:
             screen.draw.text("Um fortzufahren, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
@@ -212,4 +208,4 @@ def draw():
         standard_box(350, 600, 500, 55)
 
         magnifier.draw()
-        quiz.zeichnen(screen, WIDTH, HEIGHT, Rect)
+        quiz.draw_quiz(screen, WIDTH, HEIGHT, Rect, standard_box)

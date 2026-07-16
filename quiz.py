@@ -1,93 +1,80 @@
-raetsel = {
+quizzes = {
     "room1_item1": {
-        "frage": "Wie Gross ist der Inneninkel von Pacmans Mund?",
-        "antworten": [
+        "question": "Wie Gross ist der Inneninkel von Pacmans Mund?",
+        "answers": [
             "45°",
-            "90°",
-            "135°"
+            "60°",
+            "90°"
         ],
-        "richtig": 2
+        "correct": 1
     }
 }
 
-offenes_quiz = None
-meldung = ""
-geloeste_quizzes = []
+opened_quiz = None
+message = ""
+solved_quizzes = []
 
+def open_quiz(quiz_name):
+    global opened_quiz, message
 
-def oeffnen(quiz_name):
-    global offenes_quiz, meldung
-
-    if ist_geloest(quiz_name):
+    if quiz_is_solved(quiz_name):
         return False
-
-    offenes_quiz = quiz_name
-    meldung = ""
+    opened_quiz = quiz_name
+    message = ""
     return True
 
+def close_quiz():
+    global opened_quiz, message
 
-def schliessen():
-    global offenes_quiz, meldung
+    opened_quiz = None
+    message = ""
 
-    offenes_quiz = None
-    meldung = ""
+def quiz_is_open():
+    return opened_quiz is not None
 
+def quiz_is_solved(quiz_name):
+    return quiz_name in solved_quizzes
 
-def ist_offen():
-    return offenes_quiz is not None
+def press_key(key):
+    global message
 
-
-def ist_geloest(quiz_name):
-    return quiz_name in geloeste_quizzes
-
-
-def taste_druecken(taste):
-    global meldung
-
-    if taste == "escape":
-        schliessen()
+    if key == "escape":
+        close_quiz()
+        return
+    if opened_quiz is None:
+        return
+    if key not in ["1", "2", "3"]:
         return
 
-    if offenes_quiz is None:
-        return
+    question = quizzes[opened_quiz]
+    chosen_answer = int(key)
 
-    if taste not in ["1", "2", "3"]:
-        return
-
-    frage = raetsel[offenes_quiz]
-    gewaehlte_antwort = int(taste)
-
-    if gewaehlte_antwort == frage["richtig"]:
-        meldung = "Richtig"
-        if offenes_quiz not in geloeste_quizzes:
-            geloeste_quizzes.append(offenes_quiz)
+    if chosen_answer == question["correct"]:
+        message = "Richtig"
+        if opened_quiz not in solved_quizzes:
+            solved_quizzes.append(opened_quiz)
     else:
-        meldung = "Falsch, versuche es nochmals"
+        message = "Falsch, versuche es nochmals"
 
 
-def zeichnen(screen, breite, hoehe, rect_klasse):
-    if offenes_quiz is None:
+def draw_quiz(screen, width, height, rect_class, standard_box):
+    if opened_quiz is None:
         return
 
-    frage = raetsel[offenes_quiz]
-    box_breite = 760
-    box_hoehe = 360
-    box_x = (breite - box_breite) // 2
-    box_y = (hoehe - box_hoehe) // 2
-
-    #Pygame Zero braucht hier ein echtes Rect-Objekt.
-    quiz_box = rect_klasse((box_x, box_y), (box_breite, box_hoehe))
-    screen.draw.filled_rect(quiz_box, (20, 20, 20))
-    screen.draw.rect(quiz_box, "white")
-    screen.draw.text(frage["frage"], center=(breite / 2, box_y + 55), fontsize=42, color="white")
+    question = quizzes[opened_quiz]
+    box_width = 760
+    box_height = 360
+    box_x = (width - box_width) // 2
+    box_y = (height - box_height) // 2
+    standard_box(box_x, box_y, box_width, box_height)
+    screen.draw.text(question["question"], center=(width / 2, box_y + 55), fontsize=42, color="white")
 
     y = box_y + 120
-    for nummer, antwort in enumerate(frage["antworten"], start=1):
-        text = str(nummer) + ". " + antwort
+    for number, answer in enumerate(question["answers"], start=1):
+        text = str(number) + ". " + answer
         screen.draw.text(text, topleft=(box_x + 70, y), fontsize=34, color="white")
         y += 55
+    if message != "":
+        screen.draw.text(message, center=(width / 2, box_y + box_height - 65), fontsize=34, color="yellow")
 
-    if meldung != "":
-        screen.draw.text(meldung, center=(breite / 2, box_y + box_hoehe - 65), fontsize=34, color="yellow")
-
-    screen.draw.text("ESC: schliessen", center=(breite / 2, box_y + box_hoehe - 25), fontsize=24, color="white")
+    screen.draw.text("ESC: close_quiz", center=(width / 2, box_y + box_height - 25), fontsize=24, color="white")
