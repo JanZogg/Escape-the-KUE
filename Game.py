@@ -34,7 +34,8 @@ room = [
     "room1",
     "background"
     ]
-#door = [Actor("...", (0,0))]
+doors = [Actor("room1_door1", (1313,274))
+    ]
 items = [
     q_pacman,
     q_room1_item1
@@ -188,6 +189,8 @@ def draw():
         screen.blit(room_actor.image, (0 - offset_x, 0))
         screen.blit(room_actor.image, (room_actor.width - offset_x, 0))
         if room_index == 0:
+            screen.blit(doors[0].image, (doors[0].x - offset_x, doors[0].y))
+            screen.blit(doors[0].image, (doors[0].x - offset_x + room_actor.width, doors[0].y))
             screen.blit(q_pacman.image, (q_pacman.x - offset_x, q_pacman.y))
             screen.blit(q_pacman.image, (q_pacman.x - offset_x + room_actor.width, q_pacman.y))
             screen.blit(q_room1_item1.image, (q_room1_item1.x - offset_x,q_room1_item1.y))
