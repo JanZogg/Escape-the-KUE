@@ -24,6 +24,7 @@ quiz_item_index = 1
 sekunden = ""
 minuten = ""
 stunden = ""
+door_locked_text = False
 
 #Item Actors
 q_pacman = Actor("pacman", (855, 312)) #r = Rätsel
@@ -35,6 +36,12 @@ room = [
     "background"
     ]
 doors = [Actor("room1_door1", (1313,274))
+    ]
+doors_room = [
+    0 #room1_door1 im Raum 0
+    ]
+door_keys = [
+    "room1_item1" #room1_door1 braucht roomkey1
     ]
 items = [
     q_pacman,
@@ -76,7 +83,7 @@ def actor_collides_with_item(item, actor):
 #Programm
 def update():
     print(magnifier.pos)
-    global offset_x, game_started, item_large_pos, item_high_pos, move, mouse_klick_pos, mouse_move_pos, speed
+    global offset_x, game_started, item_large_pos, item_high_pos, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text
 
     if game_started:
         quiz_offen = quiz.quiz_is_open()
@@ -97,6 +104,8 @@ def update():
         magnifier.pos = mouse_move_pos
         invis_magnifier.pos = mouse_klick_pos
         item_high_pos = None
+        if mouse_klick_pos != (0, 0):
+            door_locked_text = False
 
         if move and not quiz_offen:
             for i, item in enumerate(items):
@@ -105,16 +114,30 @@ def update():
                 if actor_collides_with_item(item, magnifier):
                     item_high_pos = i
                     break
-            for i, item in enumerate(items):
-                if items_room[i] != room_index:
+            door_clicked = False
+            for i, door in enumerate(doors):
+                if doors_room[i] != room_index:
                     continue
-                if actor_collides_with_item(item, invis_magnifier):
-                    if i in quiz_items and not quiz.quiz_is_solved(quiz_items[i]):
-                        quiz.open_quiz(quiz_items[i])
+                if actor_collides_with_item(door, invis_magnifier):
+                    door_clicked = True
+                    if quiz.quiz_is_solved(door_keys[i]):
+                        room_index = room_index + 1
+                        room_actor.image = room[room_index]
                         item_large_pos = None
                     else:
-                        item_large_pos = i
+                        door_locked_text = True
                     break
+            if not door_clicked:
+                for i, item in enumerate(items):
+                    if items_room[i] != room_index:
+                        continue
+                    if actor_collides_with_item(item, invis_magnifier):
+                        if i in quiz_items and not quiz.quiz_is_solved(quiz_items[i]):
+                            quiz.open_quiz(quiz_items[i])
+                            item_large_pos = None
+                        else:
+                            item_large_pos = i
+                        break
 
         mouse_klick_pos = (0, 0)
         if quiz.quiz_is_open():
@@ -188,9 +211,11 @@ def draw():
         screen.clear()
         screen.blit(room_actor.image, (0 - offset_x, 0))
         screen.blit(room_actor.image, (room_actor.width - offset_x, 0))
+        for i, door in enumerate(doors):
+            if doors_room[i] == room_index:
+                screen.blit(door.image, (door.x - offset_x, door.y))
+                screen.blit(door.image, (door.x - offset_x + room_actor.width, door.y))
         if room_index == 0:
-            screen.blit(doors[0].image, (doors[0].x - offset_x, doors[0].y))
-            screen.blit(doors[0].image, (doors[0].x - offset_x + room_actor.width, doors[0].y))
             screen.blit(q_pacman.image, (q_pacman.x - offset_x, q_pacman.y))
             screen.blit(q_pacman.image, (q_pacman.x - offset_x + room_actor.width, q_pacman.y))
             screen.blit(q_room1_item1.image, (q_room1_item1.x - offset_x,q_room1_item1.y))
@@ -207,6 +232,8 @@ def draw():
                 screen.draw.text("Raetsel geloest", center=(600, 590), fontsize=40, color="yellow")
         if not move:
             screen.draw.text("Um fortzufahren, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
+        if door_locked_text:
+            screen.draw.text("Tuere ist verschlossen", center=(600, 540), fontsize=40, color="white")
 
         #Timer erstellt mit ChatGPT
         if timer_start is not None:
