@@ -1,26 +1,22 @@
 TITLE = "MaturaArbeit"
 GAME_WIDTH = 1200
 GAME_HEIGHT = 675
-WIDTH = GAME_WIDTH
-HEIGHT = GAME_HEIGHT
-LETTERBOX_COLOR = (0, 0, 0)
-import pygame
 from pygame import Rect
+import pygame
 import time
 import Quiz
 from Panorama import Hotspot, PanoramaView, find_hotspot_at_point, draw_hotspot_overlay
-
 pygame.mouse.set_visible(False)
-game_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
 
 #Variabeln
+WIDTH = GAME_WIDTH
+HEIGHT = GAME_HEIGHT
 game_started = False
 move = True
 speed = 5
 room_index = 0
 mouse_move_pos = (0, 0)
 mouse_klick_pos = (0, 0)
-item_high_pos = None
 item_large_pos = None
 hovered_hotspot = None
 show_hotspot_debug = False
@@ -41,8 +37,6 @@ room = [
     "room1",
     "background"
     ]
-doors = [Actor("room1_door1", (1313,274))
-    ]
 doors_room = [
     0 #room1_door1 im Raum 0
     ]
@@ -54,12 +48,8 @@ items = [
     q_room1_item1
     ]
 items_room = [
-    0, #q_pacamn im Raum 0
+    0, #q_pacman im Raum 0
     0 #q_room1_item1 im Raum 0
-    ]
-items_high = [
-    Actor("pacman_leuchtend"),
-    Actor("room1_high1")
     ]
 items_large = [
     Actor("pacman_gross", (600, 337.5)),
@@ -73,32 +63,29 @@ quiz_items = {
 room_actor = Actor(room[room_index])
 magnifier = Actor("magnifier")
 invis_magnifier = Actor("magnifier2")
-
 panorama_view = PanoramaView(room_actor, speed)
 
 hotspots = [
-    # Adjust these polygon points manually to match the objects painted into
-    # the panorama. The points are panorama coordinates, not screen coordinates;
-    # PanoramaView.project_polygon() bends them into the current screen view.
+    # Die Punkte sind Panorama-Koordinaten, nicht die vom Screen
     Hotspot(
         points=[
-            (855, 312),
-            (888, 312),
-            (888, 337),
-            (855, 337)
+            (862, 313),
+            (886, 313),
+            (886, 338),
+            (862, 338)
         ],
-        room_index=items_room[0],
+        room_index=items_room[0], # q_pacman
         hotspot_type="item",
         reference_index=0
     ),
     Hotspot(
         points=[
-            (923, 315),
+            (920, 315),
             (944, 315),
-            (944, 337),
-            (923, 337)
+            (944, 340),
+            (920, 340)
         ],
-        room_index=items_room[1],
+        room_index=items_room[1], # q_room1_item1
         hotspot_type="item",
         reference_index=1
     ),
@@ -125,8 +112,9 @@ def draw_large_item(screen, item_index):
 
 #Programm
 def update():
+    global game_started, item_large_pos, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text, hovered_hotspot
+    print(speed)
     print(magnifier.pos)
-    global game_started, item_large_pos, item_high_pos, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text, hovered_hotspot
 
     if game_started:
         quiz_offen = Quiz.quiz_is_open()
@@ -134,32 +122,30 @@ def update():
             speed = speed * 1.005
             panorama_view.speed = speed
             panorama_view.move_left()
-            if speed > 10:
-                speed = 10
+            if speed > 8:
+                speed = 8
         elif keyboard.D and move and not quiz_offen:
             panorama_view.speed = speed
             panorama_view.move_right()
             speed = speed * 1.005
-            if speed > 10:
-                speed = 10
+            if speed > 8:
+                speed = 8
         else:
             speed = 5
 
-        panorama_view.offset %= room_actor.width #ChatGPT hat mir die Formel %= gegeben
+        panorama_view.offset %= room_actor._surf.get_width() #ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
         magnifier.pos = mouse_move_pos
         invis_magnifier.pos = mouse_klick_pos
-        item_high_pos = None
         hovered_hotspot = None
+
         if mouse_klick_pos != (0, 0):
             door_locked_text = False
-
         if move and not quiz_offen:
             hovered_hotspot = find_hotspot_at_point(magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH)
-            if hovered_hotspot is not None and hovered_hotspot.hotspot_type == "item":
-                item_high_pos = hovered_hotspot.reference_index
 
             door_clicked = False
             clicked_door_hotspot = None
+
             if mouse_klick_pos != (0, 0):
                 clicked_door_hotspot = find_hotspot_at_point(invis_magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH, "door")
             if clicked_door_hotspot is not None:
@@ -168,6 +154,7 @@ def update():
                     door_clicked = True
                     if Quiz.quiz_is_solved(door_keys[i]):
                         room_index = room_index + 1
+                        panorama_view.offset = 0
                         room_actor.image = room[room_index]
                         item_large_pos = None
                     else:
@@ -201,13 +188,13 @@ def update():
 def on_mouse_move(pos):
     global mouse_move_pos
 
-    mouse_move_pos = window_pos_to_game_pos(pos)
+    mouse_move_pos = pos
 
 def on_mouse_down(pos):
     global mouse_klick_pos
 
     if not Quiz.quiz_is_open():
-        mouse_klick_pos = window_pos_to_game_pos(pos)
+        mouse_klick_pos = pos
 
 def quiz_taste_von_key(key):
     if key == pygame.K_1 or key == pygame.K_KP1:
@@ -234,6 +221,7 @@ def on_key_down(key):
     if game_started:
         if keyboard.P:
             room_index = room_index + 1
+            panorama_view.offset = 0
             room_actor.image = room[room_index]
 
 def standard_box(x, y, width, height):
@@ -250,46 +238,6 @@ def standard_box(x, y, width, height):
     )
     return box
 
-def set_screen_surface(target_surface):
-    screen.surface = target_surface
-    if hasattr(screen, "draw"):
-        for surface_attribute in ["surface", "_surface", "_surf", "surf"]:
-            if hasattr(screen.draw, surface_attribute):
-                try:
-                    setattr(screen.draw, surface_attribute, target_surface)
-                except AttributeError:
-                    pass
-
-def get_game_scale(target_surface):
-    window_width = target_surface.get_width()
-    window_height = target_surface.get_height()
-
-    # Use the smaller scale so the whole 16:9 game image fits into the
-    # current window. This keeps the game proportional instead of stretching it.
-    scale_factor = min(window_width / GAME_WIDTH, window_height / GAME_HEIGHT)
-    scaled_width = int(GAME_WIDTH * scale_factor)
-    scaled_height = int(GAME_HEIGHT * scale_factor)
-
-    # Center the scaled game image. If the window is not 16:9, the unused
-    # space remains black and becomes the letterbox/pillarbox border.
-    draw_offset_x = (window_width - scaled_width) // 2
-    draw_offset_y = (window_height - scaled_height) // 2
-    return scale_factor, scaled_width, scaled_height, draw_offset_x, draw_offset_y
-
-def window_pos_to_game_pos(pos):
-    scale_factor, scaled_width, scaled_height, draw_offset_x, draw_offset_y = get_game_scale(screen.surface)
-    x, y = pos
-    game_x = (x - draw_offset_x) / scale_factor
-    game_y = (y - draw_offset_y) / scale_factor
-    return game_x, game_y
-
-def draw_scaled_game_surface(target_surface):
-    scale_factor, scaled_width, scaled_height, draw_offset_x, draw_offset_y = get_game_scale(target_surface)
-
-    target_surface.fill(LETTERBOX_COLOR)
-    scaled_surface = pygame.transform.smoothscale(game_surface, (scaled_width, scaled_height))
-    target_surface.blit(scaled_surface, (draw_offset_x, draw_offset_y))
-
 def draw_game():
     if not game_started:
         screen.blit("start", (0, 0))
@@ -302,7 +250,7 @@ def draw_game():
             if item_large_pos in quiz_items and Quiz.quiz_is_solved(quiz_items[item_large_pos]):
                 screen.draw.text("Raetsel geloest", center=(600, 590), fontsize=40, color="yellow")
         if not move:
-            screen.draw.text("Um fortzufahren, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
+            screen.draw.text("Zum schliessen, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
         if door_locked_text:
             screen.draw.text("Tuere ist verschlossen", center=(600, 540), fontsize=40, color="white")
 
@@ -325,12 +273,5 @@ def draw_game():
         Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, Rect, standard_box)
 
 def draw():
-    window_surface = screen.surface
-    game_surface.fill(LETTERBOX_COLOR)
-    set_screen_surface(game_surface)
-    try:
-        draw_game()
-    finally:
-        set_screen_surface(window_surface)
-    draw_scaled_game_surface(window_surface)
+    draw_game()
     magnifier.draw()
