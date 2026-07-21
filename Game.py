@@ -23,10 +23,9 @@ show_hotspot_debug = False
 timer_duration = 60 * 60
 timer_start = None
 quiz_item_index = 1
-sekunden = ""
-minuten = ""
-stunden = ""
 door_locked_text = False
+current_song = None
+mute = False
 
 #Item Actors
 q_pacman = Actor("pacman", (855, 312)) #r = Rätsel
@@ -63,6 +62,8 @@ quiz_items = {
 room_actor = Actor(room[room_index])
 magnifier = Actor("magnifier")
 invis_magnifier = Actor("magnifier2")
+speaker = Actor("speaker", (1145, 12))
+muted_speaker = Actor("speaker_mute", (1145, 12))
 panorama_view = PanoramaView(room_actor, speed)
 
 hotspots = [
@@ -110,11 +111,10 @@ def draw_large_item(screen, item_index):
     )
     screen.blit(large_item.image, top_left)
 
-#Programm
 def update():
-    global game_started, item_large_pos, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text, hovered_hotspot
-    print(speed)
-    print(magnifier.pos)
+    global game_started, item_large_pos, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text, hovered_hotspot, mute
+    print(mute)
+    #print(speed)
 
     if game_started:
         quiz_offen = Quiz.quiz_is_open()
@@ -138,6 +138,8 @@ def update():
         invis_magnifier.pos = mouse_klick_pos
         hovered_hotspot = None
 
+        if invis_magnifier.colliderect(speaker):
+            mute = not mute
         if mouse_klick_pos != (0, 0):
             door_locked_text = False
         if move and not quiz_offen:
@@ -208,7 +210,7 @@ def quiz_taste_von_key(key):
     return None
 
 def on_key_down(key):
-    global game_started, room_index, room, timer_start
+    global game_started, room_index, room, timer_start, mute
 
     if Quiz.quiz_is_open():
         quiz_taste = quiz_taste_von_key(key)
@@ -223,6 +225,8 @@ def on_key_down(key):
             room_index = room_index + 1
             panorama_view.offset = 0
             room_actor.image = room[room_index]
+        if keyboard.M:
+            mute = not mute
 
 def standard_box(x, y, width, height):
     box = Rect(x, y, width, height)
@@ -239,6 +243,8 @@ def standard_box(x, y, width, height):
     return box
 
 def draw_game():
+    global current_song, mute
+
     if not game_started:
         screen.blit("start", (0, 0))
     else:
@@ -259,12 +265,42 @@ def draw_game():
             verbleibend = max(0, timer_duration - int(time.time() - timer_start))
         else:
             verbleibend = timer_duration
-        stunden = verbleibend // 3600
-        minuten = (verbleibend % 3600) // 60
-        sekunden = verbleibend % 60
-        timer_text = f"{stunden:02}:{minuten:02}:{sekunden:02}"
+        hours = verbleibend // 3600
+        minutes = (verbleibend % 3600) // 60
+        seconds = verbleibend % 60
+        timer_text = f"{hours:02}:{minutes:02}:{seconds:02}"
         standard_box(10, 12, 275, 55)
         screen.draw.text(timer_text, topleft=(20, 20), fontsize=40, color="white", fontname="clock")
+
+        #Musik
+        if game_started:
+            if mute:
+                screen.blit(muted_speaker.image, (1140, 12))
+                sounds.part1.set_volume(0)
+                sounds.part2.set_volume(0)
+                sounds.part3.set_volume(0)
+            else:
+                screen.blit(speaker.image, (1140, 12))
+                sounds.part1.set_volume(1)
+                sounds.part2.set_volume(1)
+                sounds.part3.set_volume(1)
+            if minutes < 20 and hours < 1:
+                new_song = 3
+            elif minutes < 40 and hours < 1:
+                new_song = 2
+            else:
+                new_song = 1
+            if new_song != current_song:
+                sounds.part1.stop()
+                sounds.part2.stop()
+                sounds.part3.stop()
+                if new_song == 1:
+                    sounds.part1.play(-1)
+                elif new_song == 2:
+                    sounds.part2.play(-1)
+                else:
+                    sounds.part3.play(-1)
+                current_song = new_song
 
         #Hotbar
         standard_box(350, 600, 500, 55)
