@@ -13,7 +13,7 @@ class Hotspot:
         self.reference_index = reference_index
 
 class PanoramaView:
-    def __init__(self, room_actor, speed=5, slice_width=4, focal_length=700):
+    def __init__(self, room_actor, speed=4, slice_width=4, focal_length=700):
         self.room_actor = room_actor
         self.speed = speed
         self.offset = 0

@@ -1,3 +1,4 @@
+from pgzero import clock
 quizzes = {
     "room1_item1": {
         "question": "Wie Gross ist der Inneninkel von Pacmans Mund?",
@@ -11,6 +12,7 @@ quizzes = {
 }
 
 opened_quiz = None
+game_is_frozen = False
 message = ""
 solved_quizzes = []
 
@@ -49,13 +51,22 @@ def press_key(key):
     question = quizzes[opened_quiz]
     chosen_answer = int(key)
 
-    if chosen_answer == question["correct"]:
+    if game_is_frozen:
+        return
+    elif chosen_answer == question["correct"]:
         message = "Richtig"
         if opened_quiz not in solved_quizzes:
             solved_quizzes.append(opened_quiz)
     else:
         message = "Falsch, versuche es nochmals"
+        game_freeze()
+        clock.schedule_unique(close_quiz, 1.5) # Formel von ChatGPT
+        clock.schedule_unique(game_freeze, 1.5)
 
+def game_freeze():
+    global game_is_frozen
+
+    game_is_frozen = not game_is_frozen
 
 def draw_quiz(screen, width, height, rect_class, standard_box):
     if opened_quiz is None:
@@ -76,5 +87,3 @@ def draw_quiz(screen, width, height, rect_class, standard_box):
         y += 55
     if message != "":
         screen.draw.text(message, center=(width / 2, box_y + box_height - 65), fontsize=34, color="yellow")
-
-    screen.draw.text("ESC: close_quiz", center=(width / 2, box_y + box_height - 25), fontsize=24, color="white")
