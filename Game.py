@@ -18,6 +18,7 @@ room_index = 0
 mouse_move_pos = (0, 0)
 mouse_klick_pos = (0, 0)
 item_large_pos = None
+current_item_quiz = None
 hovered_hotspot = None
 show_hotspot_debug = False
 timer_duration = 60 * 60
@@ -28,34 +29,40 @@ current_song = None
 mute = False
 
 #Item Actors
-q_pacman = Actor("pacman", (855, 312)) #r = Rätsel
+q_pacman = Actor("pacman", (855, 312)) #q = Rätsel
 q_room1_item1 = Actor("room1_item1", (923,315))
+q_room2_item1 = Actor("room2_item1", (1000, 500))
 
 #Listen
 room = [
     "room1",
-    "background"
+    "room2"
     ]
 doors_room = [
-    0 #room1_door1 im Raum 0
+    0 #Türe im Raum 0
     ]
 door_keys = [
-    "room1_item1" #room1_door1 braucht roomkey1
+    "room1_item1", #room1_door1 braucht roomkey1
+    "room2_item1"
     ]
 items = [
     q_pacman,
-    q_room1_item1
+    q_room1_item1,
+    q_room2_item1
     ]
 items_room = [
     0, #q_pacman im Raum 0
-    0 #q_room1_item1 im Raum 0
+    0, #q_room1_item1 im Raum 0
+    1 #q_room2_item1 im Raum 1
     ]
 items_large = [
     Actor("pacman_gross", (600, 337.5)),
-    Actor("room1_big1", (600, 337.5))
+    Actor("room1_big1", (600, 337.5)),
+    Actor("room2_big1", (600, 337.5))
     ]
 quiz_items = {
-    1: "room1_item1"
+    1: "room1_item1",
+    2: "room2_item1"
     }
 
 #Actors
@@ -65,6 +72,7 @@ invis_magnifier = Actor("magnifier2")
 speaker = Actor("speaker", (1165, 36))
 muted_speaker = Actor("speaker_mute", (1165, 36))
 start_button = Actor("start_button", (600, 500))
+quiz_button = Actor("quiz_button", (GAME_WIDTH / 2, 570))
 panorama_view = PanoramaView(room_actor, speed)
 
 hotspots = [
@@ -101,6 +109,17 @@ hotspots = [
         room_index=doors_room[0],
         hotspot_type="door",
         reference_index=0
+    ),
+    Hotspot(
+        points=[
+            (1157, 408),
+            (1178, 408),
+            (1178, 430),
+            (1157, 430)
+        ],
+        room_index=items_room[2],
+        hotspot_type="item",
+        reference_index=2
     )
 ]
 
@@ -112,8 +131,16 @@ def draw_large_item(screen, item_index):
     )
     screen.blit(large_item.image, top_left)
 
+def quiz_button_is_visible():
+    return (
+        item_large_pos is not None
+        and current_item_quiz is not None
+        and not Quiz.quiz_is_solved(current_item_quiz)
+        and not Quiz.quiz_is_open()
+    )
+
 def update():
-    global game_started, item_large_pos, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text, hovered_hotspot, mute
+    global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text, hovered_hotspot, mute
     print(mute)
 
     panorama_view.offset %= room_actor._surf.get_width() #ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
@@ -125,14 +152,14 @@ def update():
         if start_button.collidepoint(mouse_klick_pos):
             game_started = True
     if game_started and not Quiz.game_is_frozen:
-        quiz_offen = Quiz.quiz_is_open()
-        if keyboard.A and move and not quiz_offen:
+        quiz_open = Quiz.quiz_is_open()
+        if keyboard.A and move and not quiz_open:
             speed = speed * 1.005
             panorama_view.speed = speed
             panorama_view.move_left()
             if speed > 8:
                 speed = 8
-        elif keyboard.D and move and not quiz_offen:
+        elif keyboard.D and move and not quiz_open:
             panorama_view.speed = speed
             panorama_view.move_right()
             speed = speed * 1.005
@@ -145,7 +172,7 @@ def update():
             if speaker.collidepoint(mouse_klick_pos):
                 mute = not mute
             door_locked_text = False
-        if move and not quiz_offen:
+        if move and not quiz_open:
             hovered_hotspot = find_hotspot_at_point(magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH)
 
             door_clicked = False
@@ -162,6 +189,7 @@ def update():
                         panorama_view.offset = 0
                         room_actor.image = room[room_index]
                         item_large_pos = None
+                        current_item_quiz = None
                     else:
                         door_locked_text = True
             if not door_clicked:
@@ -171,11 +199,8 @@ def update():
                 if clicked_item_hotspot is not None:
                     i = clicked_item_hotspot.reference_index
                     if items_room[i] == room_index:
-                        if i in quiz_items and not Quiz.quiz_is_solved(quiz_items[i]):
-                            Quiz.open_quiz(quiz_items[i])
-                            item_large_pos = None
-                        else:
-                            item_large_pos = i
+                        item_large_pos = i
+                        current_item_quiz = quiz_items.get(i)
 
         mouse_klick_pos = (0, 0)
         if Quiz.quiz_is_open():
@@ -189,6 +214,7 @@ def update():
             Quiz.close_quiz()
         else:
             item_large_pos = None
+            current_item_quiz = None
 
 def on_mouse_move(pos):
     global mouse_move_pos
@@ -196,10 +222,16 @@ def on_mouse_move(pos):
     mouse_move_pos = pos
 
 def on_mouse_down(pos):
-    global mouse_klick_pos
+    global mouse_klick_pos, item_large_pos, current_item_quiz
 
-    if not Quiz.quiz_is_open():
-        mouse_klick_pos = pos
+    if Quiz.quiz_is_open():
+        return
+    if quiz_button_is_visible() and quiz_button.collidepoint(pos):
+        if Quiz.open_quiz(current_item_quiz):
+            item_large_pos = None
+            current_item_quiz = None
+        return
+    mouse_klick_pos = pos
 
 def quiz_taste_von_key(key):
     if key == pygame.K_1 or key == pygame.K_KP1:
@@ -213,7 +245,7 @@ def quiz_taste_von_key(key):
     return None
 
 def on_key_down(key):
-    global game_started, room_index, room, timer_start, mute
+    global game_started, room_index, room, timer_start, mute, item_large_pos, current_item_quiz
 
     if Quiz.quiz_is_open():
         quiz_taste = quiz_taste_von_key(key)
@@ -228,6 +260,8 @@ def on_key_down(key):
             room_index = room_index + 1
             panorama_view.offset = 0
             room_actor.image = room[room_index]
+            item_large_pos = None
+            current_item_quiz = None
         if keyboard.M:
             mute = not mute
 
@@ -255,6 +289,8 @@ def draw_game():
         draw_large_item(screen, item_large_pos)
         if item_large_pos in quiz_items and Quiz.quiz_is_solved(quiz_items[item_large_pos]):
             screen.draw.text("Raetsel geloest", center=(600, 590), fontsize=40, color="yellow")
+        elif quiz_button_is_visible():
+            quiz_button.draw()
     if not move:
         screen.draw.text("Zum schliessen, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
     if door_locked_text:
@@ -306,7 +342,9 @@ def draw_game():
     #Hotbar
     standard_box(350, 600, 500, 55)
     if Quiz.quiz_is_solved("room1_item1"):
-        screen.blit("roomkey1", (352.5, 602.5))
+        screen.blit("room1_key1", (353, 603))
+    if Quiz.quiz_is_solved("room2_item1"):
+        screen.blit("room2_key1", (408, 603))
     Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, Rect, standard_box)
 
 def draw():

@@ -8,6 +8,15 @@ quizzes = {
             "90°"
         ],
         "correct": 1
+    },
+    "room2_item1": {
+        "question": "Welche Aussage beschreibt die innere Entwicklung des lyrischen Ichs im Gedicht am genauesten?",
+        "answers": [
+            "Das lyrische Ich erkennt, dass die Suche nach Bedeutung erfolglos ist, und entscheidet sich deshalb, die Vorstellungen der Gesellschaft vollständig zu übernehmen.",
+            "Das lyrische Ich besitzt noch keine sichere Antwort, betrachtet aber bereits die fortgesetzte Suche und die Bewahrung der eigenen Identität als etwas Sinnvolles.",
+            "Das lyrische Ich hat sein eigentliches Lebensziel bereits gefunden, befürchtet jedoch, dieses durch äussere Erwartungen wieder zu verlieren."
+        ],
+        "correct": 2
     }
 }
 
@@ -78,12 +87,27 @@ def draw_quiz(screen, width, height, rect_class, standard_box):
     box_x = (width - box_width) // 2
     box_y = (height - box_height) // 2
     standard_box(box_x, box_y, box_width, box_height)
-    screen.draw.text(question["question"], center=(width / 2, box_y + 55), fontsize=42, color="white")
+    screen.draw.text(
+        question["question"],
+        midtop=(width / 2, box_y + 20),
+        width=box_width - 100,
+        fontsize=26,
+        lineheight=0.9,
+        align="center",
+        color="white"
+    )
 
-    y = box_y + 120
+    y = box_y + 95
     for number, answer in enumerate(question["answers"], start=1):
         text = str(number) + ". " + answer
-        screen.draw.text(text, topleft=(box_x + 70, y), fontsize=34, color="white")
-        y += 55
+        screen.draw.text(
+            text,
+            topleft=(box_x + 70, y),
+            width=box_width - 140,
+            fontsize=20,
+            lineheight=0.85,
+            color="white"
+        )
+        y += 70
     if message != "":
-        screen.draw.text(message, center=(width / 2, box_y + box_height - 65), fontsize=34, color="yellow")
+        screen.draw.text(message, center=(width / 2, box_y + box_height - 25), fontsize=28, color="yellow")
