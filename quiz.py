@@ -5,16 +5,16 @@ quizzes = {
         "answers": [
             "45°",
             "60°",
-            "90°"
+            "75°"
         ],
-        "correct": 1
+        "correct": 3
     },
     "room2_item1": {
-        "question": "Welche Aussage beschreibt die innere Entwicklung des lyrischen Ichs im Gedicht am genauesten?",
+        "question": "Welche Aussage trifft auf das lyrischen Ichs am meisten zu?",
         "answers": [
-            "Das lyrische Ich erkennt, dass die Suche nach Bedeutung erfolglos ist, und entscheidet sich deshalb, die Vorstellungen der Gesellschaft vollständig zu übernehmen.",
-            "Das lyrische Ich besitzt noch keine sichere Antwort, betrachtet aber bereits die fortgesetzte Suche und die Bewahrung der eigenen Identität als etwas Sinnvolles.",
-            "Das lyrische Ich hat sein eigentliches Lebensziel bereits gefunden, befürchtet jedoch, dieses durch äussere Erwartungen wieder zu verlieren."
+            "Das lyrische Ich gibt die Suche nach Bedeutung auf und passt sich der Gesellschaft an.",
+            "Das lyrische Ich hat noch keine Antwort, sieht aber in der Suche und der eigenen Identität einen Sinn.",
+            "Das lyrische Ich hat sein Lebensziel gefunden, fürchtet aber, es durch äussere Erwartungen zu verlieren."
         ],
         "correct": 2
     }
@@ -22,6 +22,8 @@ quizzes = {
 
 opened_quiz = None
 game_is_frozen = False
+deduction = False
+deduction_text = False
 message = ""
 solved_quizzes = []
 
@@ -47,7 +49,7 @@ def quiz_is_solved(quiz_name):
     return quiz_name in solved_quizzes
 
 def press_key(key):
-    global message
+    global message, deduction, deduction_text
 
     if key == "escape":
         close_quiz()
@@ -68,16 +70,24 @@ def press_key(key):
             solved_quizzes.append(opened_quiz)
     else:
         message = "Falsch, versuche es nochmals"
+        deduction = True
+        deduction_text = True
         game_freeze()
         clock.schedule_unique(close_quiz, 1.5) # Formel von ChatGPT
         clock.schedule_unique(game_freeze, 1.5)
+        clock.schedule_unique(set_deduction_on_false, 1.5)
 
 def game_freeze():
     global game_is_frozen
 
     game_is_frozen = not game_is_frozen
 
-def draw_quiz(screen, width, height, rect_class, standard_box):
+def set_deduction_on_false():
+    global deduction_text
+
+    deduction_text = False
+
+def draw_quiz(screen, width, height, standard_box):
     if opened_quiz is None:
         return
 
@@ -91,7 +101,7 @@ def draw_quiz(screen, width, height, rect_class, standard_box):
         question["question"],
         midtop=(width / 2, box_y + 20),
         width=box_width - 100,
-        fontsize=26,
+        fontsize=30,
         lineheight=0.9,
         align="center",
         color="white"
@@ -104,10 +114,13 @@ def draw_quiz(screen, width, height, rect_class, standard_box):
             text,
             topleft=(box_x + 70, y),
             width=box_width - 140,
-            fontsize=20,
+            fontsize=25,
             lineheight=0.85,
             color="white"
         )
         y += 70
     if message != "":
-        screen.draw.text(message, center=(width / 2, box_y + box_height - 25), fontsize=28, color="yellow")
+        if message == "Richtig":
+            screen.draw.text(message, center=(width / 2, box_y + box_height - 25), fontsize=28, color="green")
+        else:
+            screen.draw.text(message, center=(width / 2, box_y + box_height - 25), fontsize=28, color="red")

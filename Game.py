@@ -23,15 +23,9 @@ hovered_hotspot = None
 show_hotspot_debug = False
 timer_duration = 60 * 60
 timer_start = None
-quiz_item_index = 1
 door_locked_text = False
 current_song = None
 mute = False
-
-#Item Actors
-q_pacman = Actor("pacman", (855, 312)) #q = Rätsel
-q_room1_item1 = Actor("room1_item1", (923,315))
-q_room2_item1 = Actor("room2_item1", (1000, 500))
 
 #Listen
 room = [
@@ -42,13 +36,8 @@ doors_room = [
     0 #Türe im Raum 0
     ]
 door_keys = [
-    "room1_item1", #room1_door1 braucht roomkey1
+    "room1_item1",
     "room2_item1"
-    ]
-items = [
-    q_pacman,
-    q_room1_item1,
-    q_room2_item1
     ]
 items_room = [
     0, #q_pacman im Raum 0
@@ -72,7 +61,7 @@ invis_magnifier = Actor("magnifier2")
 speaker = Actor("speaker", (1165, 36))
 muted_speaker = Actor("speaker_mute", (1165, 36))
 start_button = Actor("start_button", (600, 500))
-quiz_button = Actor("quiz_button", (GAME_WIDTH / 2, 570))
+quiz_button = Actor("quiz_button", (600, 590))
 panorama_view = PanoramaView(room_actor, speed)
 
 hotspots = [
@@ -141,7 +130,7 @@ def quiz_button_is_visible():
 
 def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text, hovered_hotspot, mute
-    print(mute)
+    print(Quiz.deduction_text)
 
     panorama_view.offset %= room_actor._surf.get_width() #ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
     invis_magnifier.pos = mouse_klick_pos
@@ -280,7 +269,7 @@ def standard_box(x, y, width, height):
     return box
 
 def draw_game():
-    global current_song, mute
+    global current_song, mute, timer_duration
 
     screen.clear()
     panorama_view.draw(screen)
@@ -292,15 +281,21 @@ def draw_game():
         elif quiz_button_is_visible():
             quiz_button.draw()
     if not move:
-        screen.draw.text("Zum schliessen, druecken sie ESC", center=(600, 80), fontsize=40, color="white")
+        screen.draw.text("Zum schliessen, druecken sie ESC", center=(600, 110), fontsize=40, color="yellow")
     if door_locked_text:
-        screen.draw.text("Tuere ist verschlossen", center=(600, 540), fontsize=40, color="white")
+        screen.draw.text("Tuere ist verschlossen", center=(600, 540), fontsize=40, color="yellow")
 
     #Timer erstellt mit ChatGPT
+    if Quiz.deduction:
+        timer_duration = max(0, timer_duration - 60)
+        Quiz.deduction = False
+    if Quiz.deduction_text:
+        screen.draw.text("-1 Minute", topleft=(10, 70), fontsize=30, color="red")
     if timer_start is not None:
         verbleibend = max(0, timer_duration - int(time.time() - timer_start))
     else:
         verbleibend = timer_duration
+
     hours = verbleibend // 3600
     minutes = (verbleibend % 3600) // 60
     seconds = verbleibend % 60
@@ -309,43 +304,42 @@ def draw_game():
     screen.draw.text(timer_text, topleft=(20, 20), fontsize=40, color="white", fontname="clock")
 
     #Musik
-    if game_started:
-        standard_box (1140, 12, 55, 50)
-        if mute:
-            muted_speaker.draw()
-            sounds.part1.set_volume(0)
-            sounds.part2.set_volume(0)
-            sounds.part3.set_volume(0)
+    standard_box (1140, 12, 55, 50)
+    if mute:
+        muted_speaker.draw()
+        sounds.part1.set_volume(0)
+        sounds.part2.set_volume(0)
+        sounds.part3.set_volume(0)
+    else:
+        speaker.draw()
+        sounds.part1.set_volume(1)
+        sounds.part2.set_volume(1)
+        sounds.part3.set_volume(1)
+    if minutes < 20 and hours < 1:
+        new_song = 3
+    elif minutes < 40 and hours < 1:
+        new_song = 2
+    else:
+        new_song = 1
+    if new_song != current_song:
+        sounds.part1.stop()
+        sounds.part2.stop()
+        sounds.part3.stop()
+        if new_song == 1:
+            sounds.part1.play(-1)
+        elif new_song == 2:
+            sounds.part2.play(-1)
         else:
-            speaker.draw()
-            sounds.part1.set_volume(1)
-            sounds.part2.set_volume(1)
-            sounds.part3.set_volume(1)
-        if minutes < 20 and hours < 1:
-            new_song = 3
-        elif minutes < 40 and hours < 1:
-            new_song = 2
-        else:
-            new_song = 1
-        if new_song != current_song:
-            sounds.part1.stop()
-            sounds.part2.stop()
-            sounds.part3.stop()
-            if new_song == 1:
-                sounds.part1.play(-1)
-            elif new_song == 2:
-                sounds.part2.play(-1)
-            else:
-                sounds.part3.play(-1)
-            current_song = new_song
+            sounds.part3.play(-1)
+        current_song = new_song
 
     #Hotbar
-    standard_box(350, 600, 500, 55)
+    standard_box(10, 300, 55, 350)
     if Quiz.quiz_is_solved("room1_item1"):
-        screen.blit("room1_key1", (353, 603))
+        screen.blit("room1_key1", (13, 305))
     if Quiz.quiz_is_solved("room2_item1"):
-        screen.blit("room2_key1", (408, 603))
-    Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, Rect, standard_box)
+        screen.blit("room2_key1", (13, 360))
+    Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, standard_box)
 
 def draw():
     if not game_started:
