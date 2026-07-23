@@ -2,6 +2,7 @@ TITLE = "MaturaArbeit"
 GAME_WIDTH = 1200
 GAME_HEIGHT = 675
 from pygame import Rect
+from pgzero import clock
 import pygame
 import time
 import Quiz
@@ -26,23 +27,29 @@ timer_start = None
 door_locked_text = False
 current_song = None
 mute = False
+escape = None
+game_over = False
+mistake_sound_playing = False
 
 #Listen
 room = [
     "room1",
-    "room2"
+    "room2",
+    "escaped"
     ]
 doors_room = [
-    0 #Türe im Raum 0
+    0, #Türe im Raum 0
+    1, #Türe im Raum 1
+    99 #Schlusszeichen
     ]
 door_keys = [
     "room1_item1",
     "room2_item1"
     ]
 items_room = [
-    0, #q_pacman im Raum 0
-    0, #q_room1_item1 im Raum 0
-    1 #q_room2_item1 im Raum 1
+    0, #pacman im Raum 0
+    0, #room1_item1 im Raum 0
+    1 #room2_item1 im Raum 1
     ]
 items_large = [
     Actor("pacman_gross", (600, 337.5)),
@@ -62,6 +69,8 @@ speaker = Actor("speaker", (1165, 36))
 muted_speaker = Actor("speaker_mute", (1165, 36))
 start_button = Actor("start_button", (600, 500))
 quiz_button = Actor("quiz_button", (600, 590))
+escaped = Actor("escaped", (WIDTH / 2, HEIGHT / 2))
+imprissond = Actor("gameover", (WIDTH / 2, HEIGHT / 2))
 panorama_view = PanoramaView(room_actor, speed)
 
 hotspots = [
@@ -73,7 +82,7 @@ hotspots = [
             (886, 338),
             (862, 338)
         ],
-        room_index=items_room[0], # q_pacman
+        room_index=items_room[0], # pacman
         hotspot_type="item",
         reference_index=0
     ),
@@ -84,7 +93,7 @@ hotspots = [
             (944, 340),
             (920, 340)
         ],
-        room_index=items_room[1], # q_room1_item1
+        room_index=items_room[1], # room1_item1
         hotspot_type="item",
         reference_index=1
     ),
@@ -106,9 +115,20 @@ hotspots = [
             (1178, 430),
             (1157, 430)
         ],
-        room_index=items_room[2],
+        room_index=items_room[2], # room2_item1
         hotspot_type="item",
         reference_index=2
+    ),
+    Hotspot(
+        points=[
+            (393, 222),
+            (473, 222),
+            (473, 394),
+            (393, 394)
+        ],
+        room_index = doors_room[1],
+        hotspot_type="door",
+        reference_index = 1
     )
 ]
 
@@ -130,7 +150,7 @@ def quiz_button_is_visible():
 
 def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text
-    global hovered_hotspot, mute, timer_start
+    global hovered_hotspot, mute, timer_start, escape, game_over
     print(Quiz.deduction_text)
 
     panorama_view.offset %= room_actor._surf.get_width() #ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
@@ -142,7 +162,18 @@ def update():
         if start_button.collidepoint(mouse_klick_pos):
             game_started = True
             timer_start = time.time()
-    if game_started and not Quiz.game_is_frozen:
+    elif game_over:
+        if escape:
+            sounds.winning.set_volume(0.2)
+            sounds.winning.play(-1)
+            sounds.part1.stop()
+            sounds.part2.stop()
+            sounds.part3.stop()
+        else:
+            sounds.gameover.set_volume(0.7)
+            sounds.gameover.play(-1)
+            sounds.part3.stop()
+    elif not Quiz.game_is_frozen:
         quiz_open = Quiz.quiz_is_open()
         if keyboard.A and move and not quiz_open:
             speed = speed * 1.005
@@ -181,6 +212,9 @@ def update():
                         room_actor.image = room[room_index]
                         item_large_pos = None
                         current_item_quiz = None
+                        if doors_room[room_index] == 99:
+                            game_over = True
+                            escape = True
                     else:
                         door_locked_text = True
             if not door_clicked:
@@ -236,7 +270,7 @@ def quiz_taste_von_key(key):
     return None
 
 def on_key_down(key):
-    global game_started, room_index, room, timer_start, mute, item_large_pos, current_item_quiz
+    global game_started, room_index, room, timer_start, mute, item_large_pos, current_item_quiz, escape, game_over
 
     if Quiz.quiz_is_open():
         quiz_taste = quiz_taste_von_key(key)
@@ -255,6 +289,9 @@ def on_key_down(key):
             current_item_quiz = None
         if keyboard.M:
             mute = not mute
+        if keyboard.N:
+            escape = True
+            game_over = True
 
 def standard_box(x, y, width, height):
     box = Rect(x, y, width, height)
@@ -270,8 +307,16 @@ def standard_box(x, y, width, height):
     )
     return box
 
+def set_volume_back():
+    global mistake_sound_playing
+
+    sounds.part1.set_volume(1)
+    sounds.part2.set_volume(1)
+    sounds.part3.set_volume(1)
+    mistake_sound_playing = False
+
 def draw_game():
-    global current_song, mute, timer_duration
+    global current_song, mute, timer_duration, game_over, escape, mistake_sound_playing
 
     screen.clear()
     panorama_view.draw(screen)
@@ -290,9 +335,22 @@ def draw_game():
     #Timer erstellt mit ChatGPT
     if Quiz.deduction:
         timer_duration = max(0, timer_duration - 60)
+        mistake_sound_playing = True
+        sounds.part1.set_volume(0)
+        sounds.part2.set_volume(0)
+        sounds.part3.set_volume(0)
+        sounds.mistake.play()
+        clock.schedule_unique(set_volume_back, 1.1)
         Quiz.deduction = False
     if Quiz.deduction_text:
         screen.draw.text("-1 Minute", topleft=(10, 70), fontsize=30, color="red")
+    if Quiz.correct_sound_playing:
+        sounds.part1.set_volume(0)
+        sounds.part2.set_volume(0)
+        sounds.part3.set_volume(0)
+        sounds.correct_answer.set_volume(0.5)
+        sounds.correct_answer.play()
+        Quiz.correct_sound_playing = False
     if timer_start is not None:
         verbleibend = max(0, timer_duration - int(time.time() - timer_start))
     else:
@@ -305,6 +363,10 @@ def draw_game():
     standard_box(10, 12, 275, 55)
     screen.draw.text(timer_text, topleft=(20, 20), fontsize=40, color="white", fontname="clock")
 
+    if verbleibend == 0:
+        game_over = True
+        escape = False
+
     #Musik
     standard_box (1140, 12, 55, 50)
     if mute:
@@ -313,10 +375,11 @@ def draw_game():
         sounds.part2.set_volume(0)
         sounds.part3.set_volume(0)
     else:
-        speaker.draw()
-        sounds.part1.set_volume(1)
-        sounds.part2.set_volume(1)
-        sounds.part3.set_volume(1)
+        if not mistake_sound_playing and not Quiz.correct_sound_playing:
+            speaker.draw()
+            sounds.part1.set_volume(1)
+            sounds.part2.set_volume(1)
+            sounds.part3.set_volume(1)
     if minutes < 20 and hours < 1:
         new_song = 3
     elif minutes < 40 and hours < 1:
@@ -347,6 +410,11 @@ def draw():
     if not game_started:
         screen.blit("start", (0, 0))
         start_button.draw()
+    elif game_over:
+        if escape:
+            escaped.draw()
+        else:
+            imprissond.draw()
     else:
         draw_game()
     magnifier.draw()

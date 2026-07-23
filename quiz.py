@@ -7,7 +7,7 @@ quizzes = {
             "π/3 rad im Bogenmass",
             "100 gon im Gonmass"
         ],
-        "correct": 3
+        "correct": 2
     },
     "room2_item1": {
         "question": "Welche Aussage trifft auf das lyrischen Ich am meisten zu?",
@@ -24,6 +24,7 @@ opened_quiz = None
 game_is_frozen = False
 deduction = False
 deduction_text = False
+correct_sound_playing = False
 message = ""
 solved_quizzes = []
 
@@ -49,7 +50,7 @@ def quiz_is_solved(quiz_name):
     return quiz_name in solved_quizzes
 
 def press_key(key):
-    global message, deduction, deduction_text
+    global message, deduction, deduction_text, correct_sound_playing
 
     if key == "escape":
         close_quiz()
@@ -66,6 +67,7 @@ def press_key(key):
         return
     elif chosen_answer == question["correct"]:
         message = "Richtig"
+        correct_sound_playing = True
         if opened_quiz not in solved_quizzes:
             solved_quizzes.append(opened_quiz)
     else:
