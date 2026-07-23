@@ -129,7 +129,8 @@ def quiz_button_is_visible():
     )
 
 def update():
-    global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text, hovered_hotspot, mute
+    global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text
+    global hovered_hotspot, mute, timer_start
     print(Quiz.deduction_text)
 
     panorama_view.offset %= room_actor._surf.get_width() #ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
@@ -140,6 +141,7 @@ def update():
     if not game_started:
         if start_button.collidepoint(mouse_klick_pos):
             game_started = True
+            timer_start = time.time()
     if game_started and not Quiz.game_is_frozen:
         quiz_open = Quiz.quiz_is_open()
         if keyboard.A and move and not quiz_open:

@@ -1,16 +1,16 @@
 from pgzero import clock
 quizzes = {
     "room1_item1": {
-        "question": "Wie Gross ist der Inneninkel von Pacmans Mund?",
+        "question": "Welche Angabe entspricht dem Innenwinkel von Pacmans Mund?",
         "answers": [
             "45°",
-            "60°",
-            "75°"
+            "π/3 rad im Bogenmass",
+            "100 gon im Gonmass"
         ],
         "correct": 3
     },
     "room2_item1": {
-        "question": "Welche Aussage trifft auf das lyrischen Ichs am meisten zu?",
+        "question": "Welche Aussage trifft auf das lyrischen Ich am meisten zu?",
         "answers": [
             "Das lyrische Ich gibt die Suche nach Bedeutung auf und passt sich der Gesellschaft an.",
             "Das lyrische Ich hat noch keine Antwort, sieht aber in der Suche und der eigenen Identität einen Sinn.",
