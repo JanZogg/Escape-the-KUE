@@ -10,6 +10,9 @@ from Panorama import Hotspot, PanoramaView, find_hotspot_at_point, draw_hotspot_
 pygame.mouse.set_visible(False)
 
 #Variabeln
+# ä = \u00e4
+# ö = \u00f6
+# ü = \u00fc
 WIDTH = GAME_WIDTH
 HEIGHT = GAME_HEIGHT
 game_started = False
@@ -24,12 +27,17 @@ hovered_hotspot = None
 show_hotspot_debug = False
 timer_duration = 60 * 60
 timer_start = None
+timer_paused = False
+timer_remaining = timer_duration
 door_locked_text = False
 current_song = None
 mute = False
 escape = None
 game_over = False
+correct_sound_startet = False
+winning_sound_playing = False
 mistake_sound_playing = False
+show_controls = True
 
 #Listen
 room = [
@@ -150,7 +158,7 @@ def quiz_button_is_visible():
 
 def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text
-    global hovered_hotspot, mute, timer_start, escape, game_over
+    global hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing
     print(Quiz.deduction_text)
 
     panorama_view.offset %= room_actor._surf.get_width() #ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
@@ -161,14 +169,16 @@ def update():
     if not game_started:
         if start_button.collidepoint(mouse_klick_pos):
             game_started = True
-            timer_start = time.time()
     elif game_over:
         if escape:
-            sounds.winning.set_volume(0.2)
-            sounds.winning.play(-1)
-            sounds.part1.stop()
-            sounds.part2.stop()
-            sounds.part3.stop()
+            pause_timer()
+            if not winning_sound_playing:
+                sounds.winning.set_volume(0.5)
+                sounds.winning.play(-1)
+                sounds.part1.stop()
+                sounds.part2.stop()
+                sounds.part3.stop()
+                winning_sound_playing = True
         else:
             sounds.gameover.set_volume(0.7)
             sounds.gameover.play(-1)
@@ -235,6 +245,10 @@ def update():
         elif item_large_pos == None:
             move = True
     if keyboard.ESCAPE:
+        if show_controls:
+            show_controls = False
+            Quiz.game_is_frozen = False
+            timer_start = time.time()
         if Quiz.quiz_is_open():
             Quiz.close_quiz()
         else:
@@ -270,7 +284,7 @@ def quiz_taste_von_key(key):
     return None
 
 def on_key_down(key):
-    global game_started, room_index, room, timer_start, mute, item_large_pos, current_item_quiz, escape, game_over
+    global game_started, room_index, room, mute, item_large_pos, current_item_quiz, escape, game_over
 
     if Quiz.quiz_is_open():
         quiz_taste = quiz_taste_von_key(key)
@@ -279,7 +293,6 @@ def on_key_down(key):
         return
     if not game_started and keyboard.s:
         game_started = True
-        timer_start = time.time()
     if game_started:
         if keyboard.P:
             room_index = room_index + 1
@@ -315,8 +328,45 @@ def set_volume_back():
     sounds.part3.set_volume(1)
     mistake_sound_playing = False
 
+def stop_correct_sound():
+    global correct_sound_startet
+
+    Quiz.correct_sound_playing = False
+    correct_sound_startet = False
+
+    if not mute:
+        sounds.part1.set_volume(1)
+        sounds.part2.set_volume(1)
+        sounds.part3.set_volume(1)
+
+def pause_timer():
+    global timer_start, timer_paused, timer_remaining
+
+    if timer_start is not None and not timer_paused:
+        vergangen = time.time() - timer_start
+        timer_remaining = max(0, timer_remaining - vergangen)
+        timer_paused = True
+        timer_start = None
+
+def resume_timer():
+    global timer_start, timer_paused
+
+    if timer_paused and timer_remaining > 0:
+        timer_start = time.time()
+        timer_paused = False
+
+def get_remaining_time():
+    if timer_paused or timer_start is None:
+        verbleibend = timer_remaining
+    else:
+        vergangen = time.time() - timer_start
+        verbleibend = max(0, timer_remaining - vergangen)
+
+    return int(verbleibend)
+
 def draw_game():
-    global current_song, mute, timer_duration, game_over, escape, mistake_sound_playing
+    global current_song, mute, game_over, escape, mistake_sound_playing, show_controls, timer_remaining
+    global correct_sound_startet
 
     screen.clear()
     panorama_view.draw(screen)
@@ -324,17 +374,17 @@ def draw_game():
     if item_large_pos is not None:
         draw_large_item(screen, item_large_pos)
         if item_large_pos in quiz_items and Quiz.quiz_is_solved(quiz_items[item_large_pos]):
-            screen.draw.text("Raetsel geloest", center=(600, 590), fontsize=40, color="yellow")
+            screen.draw.text("R\u00e4tsel gel\u00f6st", center=(600, 590), fontsize=40, color="yellow")
         elif quiz_button_is_visible():
             quiz_button.draw()
     if not move:
-        screen.draw.text("Zum schliessen, druecken sie ESC", center=(600, 110), fontsize=40, color="yellow")
+        screen.draw.text("Zum schliessen, dr\u00fccken sie ESC", center=(600, 110), fontsize=40, color="yellow")
     if door_locked_text:
-        screen.draw.text("Tuere ist verschlossen", center=(600, 540), fontsize=40, color="yellow")
+        screen.draw.text("T\u00fcre ist verschlossen", center=(600, 540), fontsize=40, color="yellow")
 
     #Timer erstellt mit ChatGPT
     if Quiz.deduction:
-        timer_duration = max(0, timer_duration - 60)
+        timer_remaining = max(0, timer_remaining - 60)
         mistake_sound_playing = True
         sounds.part1.set_volume(0)
         sounds.part2.set_volume(0)
@@ -344,18 +394,16 @@ def draw_game():
         Quiz.deduction = False
     if Quiz.deduction_text:
         screen.draw.text("-1 Minute", topleft=(10, 70), fontsize=30, color="red")
-    if Quiz.correct_sound_playing:
+    if Quiz.correct_sound_playing and not correct_sound_startet:
+        correct_sound_startet = True
         sounds.part1.set_volume(0)
         sounds.part2.set_volume(0)
         sounds.part3.set_volume(0)
         sounds.correct_answer.set_volume(0.5)
         sounds.correct_answer.play()
-        Quiz.correct_sound_playing = False
-    if timer_start is not None:
-        verbleibend = max(0, timer_duration - int(time.time() - timer_start))
-    else:
-        verbleibend = timer_duration
+        clock.schedule_unique(stop_correct_sound, 0.7)
 
+    verbleibend = get_remaining_time()
     hours = verbleibend // 3600
     minutes = (verbleibend % 3600) // 60
     seconds = verbleibend % 60
@@ -375,8 +423,8 @@ def draw_game():
         sounds.part2.set_volume(0)
         sounds.part3.set_volume(0)
     else:
+        speaker.draw()
         if not mistake_sound_playing and not Quiz.correct_sound_playing:
-            speaker.draw()
             sounds.part1.set_volume(1)
             sounds.part2.set_volume(1)
             sounds.part3.set_volume(1)
@@ -406,6 +454,26 @@ def draw_game():
         screen.blit("room2_key1", (13, 360))
     Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, standard_box)
 
+    #Steuerung
+    if show_controls:
+        Quiz.game_is_frozen = True
+        box_width = 760
+        box_height = 360
+        box_x = (WIDTH - box_width) // 2
+        box_y = (HEIGHT - box_height) // 2
+        standard_box(box_x, box_y, box_width, box_height)
+        screen.draw.text("Steuerung", center=(box_x + box_width/2, box_y + 25), bold=True, fontsize=50, color="white")
+        screen.draw.text("A und D:", topleft=(box_x + 5, box_y + 70), bold=True, fontsize=25, color="white")
+        screen.draw.text("Bewege dich nach links oder rechts durch den Raum.", topleft=(box_x + 5, box_y + 90), fontsize=25, color="white")
+        screen.draw.text("Maus bewegen", topleft=(box_x + 5, box_y + 130), bold=True, fontsize=25, color="white")
+        screen.draw.text("Untersuche auff\u00e4llige Gegenst\u00e4nde.", topleft=(box_x + 5, box_y + 150), fontsize=25, color="white")
+        screen.draw.text("Linksklick", topleft=(box_x + 5, box_y + 190), bold=True, fontsize=25, color="white")
+        screen.draw.text("Sieh dir Gegenst\u00e4nde genauer an oder \u00f6ffne ein Quiz.", topleft=(box_x + 5, box_y + 210), fontsize=25, color="white")
+        screen.draw.text("ESC", topleft=(box_x + 5, box_y + 250), bold=True, fontsize=25, color="white")
+        screen.draw.text("Schliesse Bilder, Quizfragen und dieses Fenster", topleft=(box_x + 5, box_y + 270), fontsize=25, color="white")
+        screen.draw.text("Untersuche die R\u00e4ume aufmerksam, merke dir wichtige Hinweise und l\u00f6se die Quizfragen.", topleft=(box_x + 5, box_y + 310), fontsize=25, color="white")
+        screen.draw.text("Bei falscher Antwort gib es Abzug!", topleft=(box_x + 5, box_y + 330), fontsize=25, color="white")
+
 def draw():
     if not game_started:
         screen.blit("start", (0, 0))
@@ -413,6 +481,13 @@ def draw():
     elif game_over:
         if escape:
             escaped.draw()
+            verbleibend = get_remaining_time()
+            hours = verbleibend // 3600
+            minutes = (verbleibend % 3600) // 60
+            seconds = verbleibend % 60
+            timer_text = f"{hours:02}:{minutes:02}:{seconds:02}"
+            screen.draw.text("Verbleibende Zeit", center=(WIDTH / 2, 490), fontsize=35, color="white")
+            screen.draw.text(timer_text, center=(WIDTH/2, 540), fontsize=50, color="white", fontname="clock")
         else:
             imprissond.draw()
     else:
