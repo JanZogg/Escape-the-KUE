@@ -28,6 +28,23 @@ correct_sound_playing = False
 message = ""
 solved_quizzes = []
 
+def reset_quiz_state():
+    global opened_quiz, game_is_frozen, deduction, deduction_text
+    global correct_sound_playing, message
+
+    # Alte Quiz-Callbacks duerfen keinen neuen Spieldurchlauf veraendern.
+    clock.unschedule(close_quiz)
+    clock.unschedule(game_freeze)
+    clock.unschedule(set_deduction_on_false)
+
+    opened_quiz = None
+    game_is_frozen = False
+    deduction = False
+    deduction_text = False
+    correct_sound_playing = False
+    message = ""
+    solved_quizzes.clear()
+
 def open_quiz(quiz_name):
     global opened_quiz, message
 

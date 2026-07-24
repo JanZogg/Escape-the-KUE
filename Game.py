@@ -25,7 +25,7 @@ item_large_pos = None
 current_item_quiz = None
 hovered_hotspot = None
 show_hotspot_debug = False
-timer_duration = 60 * 60
+timer_duration = 60
 timer_start = None
 timer_paused = False
 timer_remaining = timer_duration
@@ -36,6 +36,7 @@ escape = None
 game_over = False
 correct_sound_startet = False
 winning_sound_playing = False
+gameover_sound_playing = False
 mistake_sound_playing = False
 show_controls = True
 
@@ -77,6 +78,7 @@ speaker = Actor("speaker", (1165, 36))
 muted_speaker = Actor("speaker_mute", (1165, 36))
 start_button = Actor("start_button", (600, 500))
 quiz_button = Actor("quiz_button", (600, 590))
+restart_button = Actor("restart_button", (600, 620))
 escaped = Actor("escaped", (WIDTH / 2, HEIGHT / 2))
 imprissond = Actor("gameover", (WIDTH / 2, HEIGHT / 2))
 panorama_view = PanoramaView(room_actor, speed)
@@ -159,6 +161,7 @@ def quiz_button_is_visible():
 def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text
     global hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing
+    global gameover_sound_playing
     print(Quiz.deduction_text)
 
     panorama_view.offset %= room_actor._surf.get_width() #ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
@@ -180,9 +183,13 @@ def update():
                 sounds.part3.stop()
                 winning_sound_playing = True
         else:
-            sounds.gameover.set_volume(0.7)
-            sounds.gameover.play(-1)
-            sounds.part3.stop()
+            if not gameover_sound_playing:
+                sounds.gameover.set_volume(0.7)
+                sounds.gameover.play(-1)
+                sounds.part1.stop()
+                sounds.part2.stop()
+                sounds.part3.stop()
+                gameover_sound_playing = True
     elif not Quiz.game_is_frozen:
         quiz_open = Quiz.quiz_is_open()
         if keyboard.A and move and not quiz_open:
@@ -263,6 +270,9 @@ def on_mouse_move(pos):
 def on_mouse_down(pos):
     global mouse_klick_pos, item_large_pos, current_item_quiz
 
+    if game_over and restart_button.collidepoint(pos):
+        restart_game()
+        return
     if Quiz.quiz_is_open():
         return
     if quiz_button_is_visible() and quiz_button.collidepoint(pos):
@@ -338,6 +348,68 @@ def stop_correct_sound():
         sounds.part1.set_volume(1)
         sounds.part2.set_volume(1)
         sounds.part3.set_volume(1)
+
+def restart_game():
+    global game_started, room_index, item_large_pos, current_item_quiz
+    global hovered_hotspot, door_locked_text, move, speed
+    global mouse_move_pos, mouse_klick_pos
+    global timer_start, timer_paused, timer_remaining
+    global game_over, escape, current_song, mute, show_controls
+    global mistake_sound_playing, correct_sound_startet
+    global winning_sound_playing, gameover_sound_playing
+
+    # Auch noch ausstehende Sound-Callbacks des alten Durchlaufs entfernen.
+    clock.unschedule(set_volume_back)
+    clock.unschedule(stop_correct_sound)
+
+    sounds.winning.stop()
+    sounds.gameover.stop()
+    sounds.correct_answer.stop()
+    sounds.mistake.stop()
+    sounds.part1.stop()
+    sounds.part2.stop()
+    sounds.part3.stop()
+
+    sounds.winning.set_volume(0.5)
+    sounds.gameover.set_volume(0.7)
+    sounds.correct_answer.set_volume(0.5)
+    sounds.mistake.set_volume(1)
+    sounds.part1.set_volume(1)
+    sounds.part2.set_volume(1)
+    sounds.part3.set_volume(1)
+
+    game_started = False
+    room_index = 0
+    room_actor.image = room[room_index]
+    panorama_view.offset = 0
+    speed = 4
+    panorama_view.speed = speed
+
+    item_large_pos = None
+    current_item_quiz = None
+    hovered_hotspot = None
+    door_locked_text = False
+    move = True
+    mouse_move_pos = (0, 0)
+    mouse_klick_pos = (0, 0)
+    magnifier.pos = mouse_move_pos
+    invis_magnifier.pos = mouse_klick_pos
+
+    timer_start = None
+    timer_paused = False
+    timer_remaining = timer_duration
+
+    game_over = False
+    escape = None
+    current_song = None
+    mute = False
+    mistake_sound_playing = False
+    correct_sound_startet = False
+    winning_sound_playing = False
+    gameover_sound_playing = False
+    show_controls = True
+
+    Quiz.reset_quiz_state()
 
 def pause_timer():
     global timer_start, timer_paused, timer_remaining
@@ -481,6 +553,7 @@ def draw():
     elif game_over:
         if escape:
             escaped.draw()
+            restart_button.draw()
             verbleibend = get_remaining_time()
             hours = verbleibend // 3600
             minutes = (verbleibend % 3600) // 60
@@ -490,6 +563,7 @@ def draw():
             screen.draw.text(timer_text, center=(WIDTH/2, 540), fontsize=50, color="white", fontname="clock")
         else:
             imprissond.draw()
+            restart_button.draw()
     else:
         draw_game()
     magnifier.draw()
