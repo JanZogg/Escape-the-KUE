@@ -29,10 +29,9 @@ message = ""
 solved_quizzes = []
 
 def reset_quiz_state():
-    global opened_quiz, game_is_frozen, deduction, deduction_text
-    global correct_sound_playing, message
+    global opened_quiz, game_is_frozen, deduction, deduction_text, correct_sound_playing, message
 
-    # Alte Quiz-Callbacks duerfen keinen neuen Spieldurchlauf veraendern.
+    # Alte Quiz-Callbacks dürfen keinen neuen Spieldurchlauf verändern.
     clock.unschedule(close_quiz)
     clock.unschedule(game_freeze)
     clock.unschedule(set_deduction_on_false)

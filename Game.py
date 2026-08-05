@@ -25,7 +25,7 @@ item_large_pos = None
 current_item_quiz = None
 hovered_hotspot = None
 show_hotspot_debug = False
-timer_duration = 60
+timer_duration = 60 * 60
 timer_start = None
 timer_paused = False
 timer_remaining = timer_duration
@@ -42,13 +42,19 @@ show_controls = True
 
 #Listen
 room = [
-    "room1",
-    "room2",
+    "room1", #Mathematik
+    "room2", #Deutsch
+    "room3", #Latein
+    "room4", #Biologie
+    "room5", #Geographie
     "escaped"
     ]
 doors_room = [
     0, #Türe im Raum 0
     1, #Türe im Raum 1
+    2, #Türe im Raum 2
+    3, #Türe im Raum 3
+    4, #Türe im Raum 4
     99 #Schlusszeichen
     ]
 door_keys = [
@@ -78,7 +84,7 @@ speaker = Actor("speaker", (1165, 36))
 muted_speaker = Actor("speaker_mute", (1165, 36))
 start_button = Actor("start_button", (600, 500))
 quiz_button = Actor("quiz_button", (600, 590))
-restart_button = Actor("restart_button", (600, 620))
+restart_button = Actor("restart_button", (600, 600))
 escaped = Actor("escaped", (WIDTH / 2, HEIGHT / 2))
 imprissond = Actor("gameover", (WIDTH / 2, HEIGHT / 2))
 panorama_view = PanoramaView(room_actor, speed)
@@ -92,7 +98,7 @@ hotspots = [
             (886, 338),
             (862, 338)
         ],
-        room_index=items_room[0], # pacman
+        room_index=items_room[0], #pacman
         hotspot_type="item",
         reference_index=0
     ),
@@ -103,7 +109,7 @@ hotspots = [
             (944, 340),
             (920, 340)
         ],
-        room_index=items_room[1], # room1_item1
+        room_index=items_room[1], #room1_item1
         hotspot_type="item",
         reference_index=1
     ),
@@ -125,7 +131,7 @@ hotspots = [
             (1178, 430),
             (1157, 430)
         ],
-        room_index=items_room[2], # room2_item1
+        room_index=items_room[2], #room2_item1
         hotspot_type="item",
         reference_index=2
     ),
@@ -139,6 +145,39 @@ hotspots = [
         room_index = doors_room[1],
         hotspot_type="door",
         reference_index = 1
+    ),
+        Hotspot(
+        points=[
+            (393, 222),
+            (473, 222),
+            (473, 394),
+            (393, 394)
+        ],
+        room_index = doors_room[2],
+        hotspot_type="door",
+        reference_index = 2
+    ),
+    Hotspot(
+        points=[
+            (393, 222),
+            (473, 222),
+            (473, 394),
+            (393, 394)
+        ],
+        room_index = doors_room[3],
+        hotspot_type="door",
+        reference_index = 3
+    ),
+    Hotspot(
+        points=[
+            (393, 222),
+            (473, 222),
+            (473, 394),
+            (393, 394)
+        ],
+        room_index = doors_room[4],
+        hotspot_type="door",
+        reference_index = 4
     )
 ]
 
@@ -160,11 +199,10 @@ def quiz_button_is_visible():
 
 def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text
-    global hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing
-    global gameover_sound_playing
+    global hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing, gameover_sound_playing
     print(Quiz.deduction_text)
 
-    panorama_view.offset %= room_actor._surf.get_width() #ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
+    panorama_view.offset %= room_actor._surf.get_width() # ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
     invis_magnifier.pos = mouse_klick_pos
     hovered_hotspot = None
     magnifier.pos = mouse_move_pos
@@ -184,7 +222,7 @@ def update():
                 winning_sound_playing = True
         else:
             if not gameover_sound_playing:
-                sounds.gameover.set_volume(0.7)
+                sounds.gameover.set_volume(1.3)
                 sounds.gameover.play(-1)
                 sounds.part1.stop()
                 sounds.part2.stop()
@@ -208,8 +246,6 @@ def update():
             speed = 4
 
         if mouse_klick_pos != (0, 0):
-            if speaker.collidepoint(mouse_klick_pos):
-                mute = not mute
             door_locked_text = False
         if move and not quiz_open:
             hovered_hotspot = find_hotspot_at_point(magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH)
@@ -350,15 +386,12 @@ def stop_correct_sound():
         sounds.part3.set_volume(1)
 
 def restart_game():
-    global game_started, room_index, item_large_pos, current_item_quiz
-    global hovered_hotspot, door_locked_text, move, speed
-    global mouse_move_pos, mouse_klick_pos
-    global timer_start, timer_paused, timer_remaining
-    global game_over, escape, current_song, mute, show_controls
-    global mistake_sound_playing, correct_sound_startet
-    global winning_sound_playing, gameover_sound_playing
+    global game_started, room_index, item_large_pos, current_item_quiz, hovered_hotspot
+    global door_locked_text, move, speed, game_over, escape, current_song, gameover_sound_playing
+    global mouse_move_pos, mouse_klick_pos, timer_start, timer_paused, timer_remaining, mute
+    global show_controls, mistake_sound_playing, correct_sound_startet, winning_sound_playing
 
-    # Auch noch ausstehende Sound-Callbacks des alten Durchlaufs entfernen.
+    # Ausstehende Sound-Callbacks des alten Durchlaufs entfernen.
     clock.unschedule(set_volume_back)
     clock.unschedule(stop_correct_sound)
 
@@ -395,10 +428,6 @@ def restart_game():
     magnifier.pos = mouse_move_pos
     invis_magnifier.pos = mouse_klick_pos
 
-    timer_start = None
-    timer_paused = False
-    timer_remaining = timer_duration
-
     game_over = False
     escape = None
     current_song = None
@@ -408,6 +437,10 @@ def restart_game():
     winning_sound_playing = False
     gameover_sound_playing = False
     show_controls = True
+
+    timer_start = None
+    timer_paused = False
+    timer_remaining = timer_duration
 
     Quiz.reset_quiz_state()
 
@@ -524,6 +557,13 @@ def draw_game():
         screen.blit("room1_key1", (13, 305))
     if Quiz.quiz_is_solved("room2_item1"):
         screen.blit("room2_key1", (13, 360))
+    if Quiz.quiz_is_solved("room3_item1"):
+        screen.blit("room3_key1", (13, 360))
+    if Quiz.quiz_is_solved("room4_item1"):
+        screen.blit("room4_key1", (13, 360))
+    if Quiz.quiz_is_solved("room5_item1"):
+        screen.blit("room5_key1", (13, 360))
+
     Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, standard_box)
 
     #Steuerung
@@ -559,8 +599,8 @@ def draw():
             minutes = (verbleibend % 3600) // 60
             seconds = verbleibend % 60
             timer_text = f"{hours:02}:{minutes:02}:{seconds:02}"
-            screen.draw.text("Verbleibende Zeit", center=(WIDTH / 2, 490), fontsize=35, color="white")
-            screen.draw.text(timer_text, center=(WIDTH/2, 540), fontsize=50, color="white", fontname="clock")
+            screen.draw.text("Verbleibende Zeit", center=(WIDTH / 2, 470), fontsize=35, color="white")
+            screen.draw.text(timer_text, center=(WIDTH/2, 515), fontsize=50, color="white", fontname="clock")
         else:
             imprissond.draw()
             restart_button.draw()
