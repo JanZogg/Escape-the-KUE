@@ -39,6 +39,12 @@ winning_sound_playing = False
 gameover_sound_playing = False
 mistake_sound_playing = False
 show_controls = True
+active_key_animation = None
+
+# Einstellungen für die Schlüsselanimation.
+KEY_ANIMATION_HOLD_DURATION = 0.5
+KEY_ANIMATION_FLIGHT_DURATION = 0.75
+KEY_HOTBAR_MAX_SIZE = (48, 48)
 
 #Listen
 room = [
@@ -75,6 +81,14 @@ quiz_items = {
     1: "room1_item1",
     2: "room2_item1"
     }
+key_animation_config = {
+    "room1_item1": ("room1_key1", (13, 305)),
+    "room2_item1": ("room2_key1", (13, 360)),
+    "room3_item1": ("room3_key1", (13, 415)),
+    "room4_item1": ("room4_key1", (13, 470)),
+    "room5_item1": ("room5_key1", (13, 525))
+    }
+key_inventory = []
 
 #Actors
 room_actor = Actor(room[room_index])
@@ -197,15 +211,131 @@ def quiz_button_is_visible():
         and not Quiz.quiz_is_open()
     )
 
+def get_key_hotbar_size(key_image):
+    image_width, image_height = key_image.get_size() # Ursprünglihce Bildgrösse
+    max_width, max_height = KEY_HOTBAR_MAX_SIZE
+    scale = min(max_width / image_width, max_height / image_height) # Berechnet den kleineren Verkleinerungsfaktor, ChatGPT
+    return (
+        max(1, round(image_width * scale)),
+        max(1, round(image_height * scale))
+    )
+
+def key_is_in_inventory(target_pos):
+    return any(key["target_pos"] == target_pos for key in key_inventory)
+
+def start_key_animation(key_image, target_pos):
+    global active_key_animation
+
+    # Es kann immer nur ein Schlüssel gleichzeitig animiert werden.
+    if active_key_animation is not None or key_is_in_inventory(target_pos):
+        return False
+
+    start_size = key_image.get_size()
+    final_size = get_key_hotbar_size(key_image)
+    # Dictionary mit sämtlichen Infos
+    active_key_animation = {
+        "image": key_image, # Ursprüngliche Schlüsselbild
+        "target_pos": target_pos, # Zielposition
+        "start_time": time.time(), # Startzeitpunkt der Animation
+        "start_size": start_size, # Anfangsgrösse
+        "final_size": final_size, # Endgrösse
+        "current_pos": (
+            WIDTH / 2 - start_size[0] / 2, # Startposition
+            HEIGHT / 2 - start_size[1] / 2
+        ),
+        "current_size": start_size
+    }
+    return True
+
+def update_key_animation(): # Codex
+    global active_key_animation
+
+    if active_key_animation is None:
+        return
+
+    elapsed = time.time() - active_key_animation["start_time"] # Wie lange Animation schon läuft
+    if elapsed <= KEY_ANIMATION_HOLD_DURATION:
+        return
+
+    flight_elapsed = elapsed - KEY_ANIMATION_HOLD_DURATION # Flugzeit
+    progress = min(flight_elapsed / KEY_ANIMATION_FLIGHT_DURATION, 1) # Fortschritt
+
+    # Verkleinerung berechnen
+    start_width, start_height = active_key_animation["start_size"]
+    final_width, final_height = active_key_animation["final_size"]
+    current_width = round(start_width + (final_width - start_width) * progress)
+    current_height = round(start_height + (final_height - start_height) * progress)
+
+    # Bewegung berechnen
+    start_center = (WIDTH / 2, HEIGHT / 2)
+    target_center = (
+        active_key_animation["target_pos"][0] + final_width / 2,
+        active_key_animation["target_pos"][1] + final_height / 2
+    )
+    current_center = (
+        start_center[0] + (target_center[0] - start_center[0]) * progress,
+        start_center[1] + (target_center[1] - start_center[1]) * progress
+    )
+    active_key_animation["current_size"] = (max(1, current_width), max(1, current_height))
+    active_key_animation["current_pos"] = (
+        current_center[0] - active_key_animation["current_size"][0] / 2,
+        current_center[1] - active_key_animation["current_size"][1] / 2
+    )
+
+    if progress == 1: # Animation beenden
+        key_inventory.append({
+            "image": pygame.transform.smoothscale(
+                active_key_animation["image"],
+                active_key_animation["final_size"]
+            ),
+            "target_pos": active_key_animation["target_pos"],
+        })
+        active_key_animation = None
+
+def draw_key_animation():
+    if active_key_animation is None:
+        return
+
+    # Smoothscale erzeugt einen neuen Surface, so dass die PNG-Datei unverändert bleibt
+    scaled_image = pygame.transform.smoothscale(
+        active_key_animation["image"],
+        active_key_animation["current_size"]
+    )
+    draw_pos = (
+        round(active_key_animation["current_pos"][0]),
+        round(active_key_animation["current_pos"][1])
+    )
+    screen.surface.blit(scaled_image, draw_pos)
+
+def draw_key_inventory():
+    for key in key_inventory:
+        screen.surface.blit(key["image"], key["target_pos"])
+
+def close_quiz_with_key_animation():
+    quiz_name = Quiz.opened_quiz
+    if quiz_name is None:
+        return True
+
+    if Quiz.quiz_is_solved(quiz_name) and quiz_name in key_animation_config:
+        image_name, target_pos = key_animation_config[quiz_name]
+        if not key_is_in_inventory(target_pos):
+            if active_key_animation is not None:
+                return False
+            start_key_animation(getattr(images, image_name), target_pos)
+
+    Quiz.close_quiz()
+    return True
+
 def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text
     global hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing, gameover_sound_playing
-    print(Quiz.deduction_text)
+    # print(Quiz.deduction_text)
 
     panorama_view.offset %= room_actor._surf.get_width() # ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
     invis_magnifier.pos = mouse_klick_pos
     hovered_hotspot = None
     magnifier.pos = mouse_move_pos
+    update_key_animation()
 
     if not game_started:
         if start_button.collidepoint(mouse_klick_pos):
@@ -293,7 +423,7 @@ def update():
             Quiz.game_is_frozen = False
             timer_start = time.time()
         if Quiz.quiz_is_open():
-            Quiz.close_quiz()
+            close_quiz_with_key_animation()
         else:
             item_large_pos = None
             current_item_quiz = None
@@ -335,7 +465,10 @@ def on_key_down(key):
     if Quiz.quiz_is_open():
         quiz_taste = quiz_taste_von_key(key)
         if quiz_taste is not None:
-            Quiz.press_key(quiz_taste)
+            if quiz_taste == "escape":
+                close_quiz_with_key_animation()
+            else:
+                Quiz.press_key(quiz_taste)
         return
     if not game_started and keyboard.s:
         game_started = True
@@ -390,6 +523,7 @@ def restart_game():
     global door_locked_text, move, speed, game_over, escape, current_song, gameover_sound_playing
     global mouse_move_pos, mouse_klick_pos, timer_start, timer_paused, timer_remaining, mute
     global show_controls, mistake_sound_playing, correct_sound_startet, winning_sound_playing
+    global active_key_animation
 
     # Ausstehende Sound-Callbacks des alten Durchlaufs entfernen.
     clock.unschedule(set_volume_back)
@@ -437,6 +571,8 @@ def restart_game():
     winning_sound_playing = False
     gameover_sound_playing = False
     show_controls = True
+    active_key_animation = None
+    key_inventory.clear()
 
     timer_start = None
     timer_paused = False
@@ -553,16 +689,7 @@ def draw_game():
 
     #Hotbar
     standard_box(10, 300, 55, 350)
-    if Quiz.quiz_is_solved("room1_item1"):
-        screen.blit("room1_key1", (13, 305))
-    if Quiz.quiz_is_solved("room2_item1"):
-        screen.blit("room2_key1", (13, 360))
-    if Quiz.quiz_is_solved("room3_item1"):
-        screen.blit("room3_key1", (13, 360))
-    if Quiz.quiz_is_solved("room4_item1"):
-        screen.blit("room4_key1", (13, 360))
-    if Quiz.quiz_is_solved("room5_item1"):
-        screen.blit("room5_key1", (13, 360))
+    draw_key_inventory()
 
     Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, standard_box)
 
@@ -606,4 +733,5 @@ def draw():
             restart_button.draw()
     else:
         draw_game()
+    draw_key_animation()
     magnifier.draw()
