@@ -3,10 +3,15 @@ GAME_WIDTH = 1920
 GAME_HEIGHT = 1080
 from pygame import Rect
 from pgzero import clock
+import pgzero.game
 import pygame
 import time
 import Quiz
 from Panorama import Hotspot, PanoramaView, find_hotspot_at_point, draw_hotspot_overlay
+
+# Pygame Zero liest diese Flags nach dem Laden dieses Moduls und erstellt
+# damit selbst genau einen Screen mit einer logischen Aufloesung von 1920x1080.
+pgzero.game.DISPLAY_FLAGS = pygame.FULLSCREEN | pygame.SCALED
 pygame.mouse.set_visible(False)
 
 #Variabeln
