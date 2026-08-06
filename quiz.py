@@ -110,35 +110,35 @@ def draw_quiz(screen, width, height, standard_box):
         return
 
     question = quizzes[opened_quiz]
-    box_width = 760
-    box_height = 360
+    box_width = 1216
+    box_height = 576
     box_x = (width - box_width) // 2
     box_y = (height - box_height) // 2
     standard_box(box_x, box_y, box_width, box_height)
     screen.draw.text(
         question["question"],
-        midtop=(width / 2, box_y + 20),
-        width=box_width - 100,
-        fontsize=30,
+        midtop=(width / 2, box_y + 32),
+        width=box_width - 160,
+        fontsize=48,
         lineheight=0.9,
         align="center",
         color="white"
     )
 
-    y = box_y + 95
+    y = box_y + 152
     for number, answer in enumerate(question["answers"], start=1):
         text = str(number) + ". " + answer
         screen.draw.text(
             text,
-            topleft=(box_x + 70, y),
-            width=box_width - 140,
-            fontsize=25,
+            topleft=(box_x + 112, y),
+            width=box_width - 224,
+            fontsize=40,
             lineheight=0.85,
             color="white"
         )
-        y += 70
+        y += 112
     if message != "":
         if message == "Richtig":
-            screen.draw.text(message, center=(width / 2, box_y + box_height - 25), fontsize=28, color="green")
+            screen.draw.text(message, center=(width / 2, box_y + box_height - 40), fontsize=45, color="green")
         else:
-            screen.draw.text(message, center=(width / 2, box_y + box_height - 25), fontsize=28, color="red")
+            screen.draw.text(message, center=(width / 2, box_y + box_height - 40), fontsize=45, color="red")

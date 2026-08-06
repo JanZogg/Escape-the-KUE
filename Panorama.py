@@ -3,7 +3,7 @@ import math
 
 HOTSPOT_FILL_COLOR = (255, 0, 0, 70)
 HOTSPOT_BORDER_COLOR = (255, 0, 0)
-HOTSPOT_BORDER_WIDTH = 3
+HOTSPOT_BORDER_WIDTH = 5
 
 class Hotspot:
     def __init__(self, points, room_index, hotspot_type, reference_index):
@@ -13,12 +13,15 @@ class Hotspot:
         self.reference_index = reference_index
 
 class PanoramaView:
-    def __init__(self, room_actor, speed=4, slice_width=4, focal_length=700):
+    def __init__(self, room_actor, speed=6.4, slice_width=6, focal_length=1120):
         self.room_actor = room_actor
         self.speed = speed
         self.offset = 0
         self.slice_width = slice_width
         self.focal_length = focal_length
+
+    def set_room_image(self, image_name):
+        self.room_actor.image = image_name
 
     def move_left(self):
         self.offset -= self.speed
