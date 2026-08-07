@@ -9,8 +9,7 @@ import time
 import Quiz
 from Panorama import Hotspot, PanoramaView, find_hotspot_at_point, draw_hotspot_overlay
 
-# Pygame Zero liest diese Flags nach dem Laden dieses Moduls und erstellt
-# damit selbst genau einen Screen mit einer logischen Aufloesung von 1920x1080.
+#ChatGPT
 pgzero.game.DISPLAY_FLAGS = pygame.FULLSCREEN | pygame.SCALED
 pygame.mouse.set_visible(False)
 
@@ -108,6 +107,7 @@ puzzle_button = Actor("puzzle_button", (WIDTH / 2, 944))
 restart_button = Actor("restart_button", (WIDTH / 2, 960))
 escaped = Actor("escaped", (WIDTH / 2, HEIGHT / 2))
 imprissond = Actor("gameover", (WIDTH / 2, HEIGHT / 2))
+x = Actor("close_smth", (1543 - 10, 277 + 10))
 panorama_view = PanoramaView(
     room_actor,
     speed,
@@ -370,57 +370,70 @@ def update():
                 sounds.part2.stop()
                 sounds.part3.stop()
                 gameover_sound_playing = True
-    elif not Quiz.game_is_frozen:
-        quiz_open = Quiz.quiz_is_open()
-        if keyboard.A and move and not quiz_open:
-            speed = speed * 1.005
-            panorama_view.speed = speed
-            panorama_view.move_left()
-            if speed > PANORAMA_MAX_SPEED:
-                speed = PANORAMA_MAX_SPEED
-        elif keyboard.D and move and not quiz_open:
-            panorama_view.speed = speed
-            panorama_view.move_right()
-            speed = speed * 1.005
-            if speed > PANORAMA_MAX_SPEED:
-                speed = PANORAMA_MAX_SPEED
-        else:
-            speed = PANORAMA_BASE_SPEED
-
-        if mouse_klick_pos != (0, 0):
-            door_locked_text = False
-        if move and not quiz_open:
-            hovered_hotspot = find_hotspot_at_point(magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH)
-
-            door_clicked = False
-            clicked_door_hotspot = None
+    else:
+        if speaker.collidepoint(mouse_klick_pos):
+            mute = not mute
+            mouse_klick_pos = (0, 0)
+        if not Quiz.game_is_frozen:
+            quiz_open = Quiz.quiz_is_open()
+            if keyboard.A and move and not quiz_open:
+                speed = speed * 1.005
+                panorama_view.speed = speed
+                panorama_view.move_left()
+                if speed > PANORAMA_MAX_SPEED:
+                    speed = PANORAMA_MAX_SPEED
+            elif keyboard.D and move and not quiz_open:
+                panorama_view.speed = speed
+                panorama_view.move_right()
+                speed = speed * 1.005
+                if speed > PANORAMA_MAX_SPEED:
+                    speed = PANORAMA_MAX_SPEED
+            else:
+                speed = PANORAMA_BASE_SPEED
 
             if mouse_klick_pos != (0, 0):
-                clicked_door_hotspot = find_hotspot_at_point(invis_magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH, "door")
-            if clicked_door_hotspot is not None:
-                i = clicked_door_hotspot.reference_index
-                if doors_room[i] == room_index:
-                    door_clicked = True
-                    if Quiz.quiz_is_solved(door_keys[i]):
-                        room_index = room_index + 1
-                        panorama_view.offset = 0
-                        panorama_view.set_room_image(room[room_index])
-                        item_large_pos = None
-                        current_item_quiz = None
-                        if doors_room[room_index] == 99:
-                            game_over = True
-                            escape = True
-                    else:
-                        door_locked_text = True
-            if not door_clicked:
-                clicked_item_hotspot = None
+                door_locked_text = False
+            if move and not quiz_open:
+                hovered_hotspot = find_hotspot_at_point(magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH)
+
+                door_clicked = False
+                clicked_door_hotspot = None
+
                 if mouse_klick_pos != (0, 0):
-                    clicked_item_hotspot = find_hotspot_at_point(invis_magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH, "item")
-                if clicked_item_hotspot is not None:
-                    i = clicked_item_hotspot.reference_index
-                    if items_room[i] == room_index:
-                        item_large_pos = i
-                        current_item_quiz = quiz_items.get(i)
+                    clicked_door_hotspot = find_hotspot_at_point(invis_magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH, "door")
+                if clicked_door_hotspot is not None:
+                    i = clicked_door_hotspot.reference_index
+                    if doors_room[i] == room_index:
+                        door_clicked = True
+                        if Quiz.quiz_is_solved(door_keys[i]):
+                            room_index = room_index + 1
+                            panorama_view.offset = 0
+                            panorama_view.set_room_image(room[room_index])
+                            item_large_pos = None
+                            current_item_quiz = None
+                            if doors_room[room_index] == 99:
+                                game_over = True
+                                escape = True
+                        else:
+                            door_locked_text = True
+                if not door_clicked:
+                    clicked_item_hotspot = None
+                    if mouse_klick_pos != (0, 0):
+                        clicked_item_hotspot = find_hotspot_at_point(invis_magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH, "item")
+                    if clicked_item_hotspot is not None:
+                        i = clicked_item_hotspot.reference_index
+                        if items_room[i] == room_index:
+                            item_large_pos = i
+                            current_item_quiz = quiz_items.get(i)
+
+        if x.collidepoint(mouse_klick_pos):
+            if show_controls:
+                show_controls = False
+                Quiz.game_is_frozen = False
+                timer_start = time.time()
+            else:
+                item_large_pos = None
+                current_item_quiz = None
 
         mouse_klick_pos = (0, 0)
         if Quiz.quiz_is_open():
@@ -429,16 +442,6 @@ def update():
             move = False
         elif item_large_pos == None:
             move = True
-    if keyboard.ESCAPE:
-        if show_controls:
-            show_controls = False
-            Quiz.game_is_frozen = False
-            timer_start = time.time()
-        if Quiz.quiz_is_open():
-            close_quiz_with_key_animation()
-        else:
-            item_large_pos = None
-            current_item_quiz = None
 
 def on_mouse_move(pos):
     global mouse_move_pos
@@ -452,6 +455,8 @@ def on_mouse_down(pos):
         restart_game()
         return
     if Quiz.quiz_is_open():
+        if x.collidepoint(pos):
+            close_quiz_with_key_animation()
         return
     if puzzle_button_is_visible() and puzzle_button.collidepoint(pos):
         if Quiz.open_quiz(current_item_quiz):
@@ -624,14 +629,20 @@ def draw_game():
     screen.clear()
     panorama_view.draw(screen)
     draw_hotspot_overlay(screen, room_index, hovered_hotspot, show_hotspot_debug, hotspots, panorama_view)
+    if not move and Quiz.opened_quiz is None:
+        box_width = 1216
+        box_height = 576
+        box_x = (WIDTH - box_width) // 2
+        box_y = (HEIGHT - box_height) // 2
+        standard_box(box_x, box_y, box_width, box_height)
+        x.draw()
     if item_large_pos is not None:
         draw_large_item(screen, item_large_pos)
         if item_large_pos in quiz_items and Quiz.quiz_is_solved(quiz_items[item_large_pos]):
             screen.draw.text("R\u00e4tsel gel\u00f6st", center=(WIDTH / 2, 944), fontsize=64, color="yellow")
         elif puzzle_button_is_visible():
             puzzle_button.draw()
-    if not move:
-        screen.draw.text("Zum schliessen, dr\u00fccken sie ESC", center=(WIDTH / 2, 176), fontsize=64, color="yellow")
+
     if door_locked_text:
         screen.draw.text("T\u00fcre ist verschlossen", center=(WIDTH / 2, 864), fontsize=64, color="yellow")
 
@@ -704,6 +715,8 @@ def draw_game():
     draw_key_inventory()
 
     Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, standard_box)
+    if Quiz.quiz_is_open():
+        x.draw()
 
     #Steuerung
     if show_controls:
@@ -714,16 +727,17 @@ def draw_game():
         box_y = (HEIGHT - box_height) // 2
         standard_box(box_x, box_y, box_width, box_height)
         screen.draw.text("Steuerung", center=(box_x + box_width / 2, box_y + 40), bold=True, fontsize=80, color="white")
-        screen.draw.text("A und D:", topleft=(box_x + 8, box_y + 112), bold=True, fontsize=40, color="white")
-        screen.draw.text("Bewege dich nach links oder rechts durch den Raum.", topleft=(box_x + 8, box_y + 144), fontsize=40, color="white")
-        screen.draw.text("Maus bewegen", topleft=(box_x + 8, box_y + 208), bold=True, fontsize=40, color="white")
-        screen.draw.text("Untersuche auff\u00e4llige Gegenst\u00e4nde.", topleft=(box_x + 8, box_y + 240), fontsize=40, color="white")
-        screen.draw.text("Linksklick", topleft=(box_x + 8, box_y + 304), bold=True, fontsize=40, color="white")
-        screen.draw.text("Sieh dir Gegenst\u00e4nde genauer an oder \u00f6ffne ein Quiz.", topleft=(box_x + 8, box_y + 336), fontsize=40, color="white")
-        screen.draw.text("ESC", topleft=(box_x + 8, box_y + 400), bold=True, fontsize=40, color="white")
-        screen.draw.text("Schliesse Bilder, Quizfragen und dieses Fenster", topleft=(box_x + 8, box_y + 432), fontsize=40, color="white")
-        screen.draw.text("Untersuche die R\u00e4ume aufmerksam, merke dir wichtige Hinweise und l\u00f6se die Quizfragen.", topleft=(box_x + 8, box_y + 496), fontsize=40, color="white")
-        screen.draw.text("Bei falscher Antwort gib es Abzug!", topleft=(box_x + 8, box_y + 528), fontsize=40, color="white")
+        screen.draw.text("A und D:", topleft=(box_x + 15, box_y + 112), bold=True, fontsize=38, color="white")
+        screen.draw.text("Bewege dich nach links oder rechts durch den Raum.", topleft=(box_x + 15, box_y + 144), fontsize=38, color="white")
+        screen.draw.text("Maus bewegen", topleft=(box_x + 15, box_y + 208), bold=True, fontsize=38, color="white")
+        screen.draw.text("Untersuche auff\u00e4llige Gegenst\u00e4nde.", topleft=(box_x + 15, box_y + 240), fontsize=38, color="white")
+        screen.draw.text("Linksklick", topleft=(box_x + 15, box_y + 304), bold=True, fontsize=38, color="white")
+        screen.draw.text("Sieh dir Gegenst\u00e4nde genauer an oder \u00f6ffne ein Quiz.", topleft=(box_x + 15, box_y + 336), fontsize=38, color="white")
+        screen.draw.text("ESC", topleft=(box_x + 15, box_y + 400), bold=True, fontsize=38, color="white")
+        screen.draw.text("Schliesse Bilder, Quizfragen und dieses Fenster", topleft=(box_x + 15, box_y + 432), fontsize=38, color="white")
+        screen.draw.text("Untersuche die R\u00e4ume aufmerksam, merke dir wichtige Hinweise und l\u00f6se die Quizfragen.", topleft=(box_x + 15, box_y + 496), fontsize=38, color="white")
+        screen.draw.text("Bei falscher Antwort gib es Abzug!", topleft=(box_x + 15, box_y + 528), fontsize=38, color="white")
+        x.draw()
 
 def draw():
     if not game_started:
