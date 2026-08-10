@@ -35,7 +35,6 @@ class PanoramaView:
     def draw_cylindrical(self, screen):
         panorama_surface = self.room_actor._surf
         screen_width = screen.surface.get_width()
-        screen_height = screen.surface.get_height()
         panorama_width = panorama_surface.get_width()
         panorama_height = panorama_surface.get_height()
         screen_center_x = screen_width / 2

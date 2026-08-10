@@ -37,7 +37,7 @@ timer_paused = False
 timer_remaining = timer_duration
 door_locked_text = False
 current_song = None
-mute = False
+mute = True
 escape = None
 game_over = False
 correct_sound_startet = False
@@ -54,19 +54,20 @@ KEY_HOTBAR_MAX_SIZE = (77, 77)
 
 #Listen
 room = [
-    "room1", #Mathematik
-    "room2", #Deutsch
-    "room3", #Latein
-    "room4", #Biologie
-    "room5", #Geographie
+    "room1", #Deutsch
+    "room2", #Mathematik
+    #"room3", #Geographie
+    #"room4", #Chemie
+    #"room5", #Phyik
+    #"room6", #Latein
     "escaped"
     ]
 doors_room = [
     0, #Türe im Raum 0
     1, #Türe im Raum 1
-    2, #Türe im Raum 2
-    3, #Türe im Raum 3
-    4, #Türe im Raum 4
+    #2, #Türe im Raum 2
+    #3, #Türe im Raum 3
+    #4, #Türe im Raum 4
     99 #Schlusszeichen
     ]
 door_keys = [
@@ -74,32 +75,30 @@ door_keys = [
     "room2_item1"
     ]
 items_room = [
-    0, #pacman im Raum 0
     0, #room1_item1 im Raum 0
     1 #room2_item1 im Raum 1
     ]
 items_large = [
-    Actor("pacman_gross", (WIDTH / 2, HEIGHT / 2)),
     Actor("room1_big1", (WIDTH / 2, HEIGHT / 2)),
     Actor("room2_big1", (WIDTH / 2, HEIGHT / 2))
     ]
 quiz_items = {
-    1: "room1_item1",
-    2: "room2_item1"
+    0: "room1_item1",
+    1: "room2_item1"
     }
 key_animation_config = {
-    "room1_item1": ("room1_key1", (21, 488)),
-    "room2_item1": ("room2_key1", (21, 576)),
-    "room3_item1": ("room3_key1", (21, 664)),
-    "room4_item1": ("room4_key1", (21, 752)),
-    "room5_item1": ("room5_key1", (21, 840))
+    "room1_item1": ("room1_key1", (25, 490)),
+    "room2_item1": ("room2_key1", (25, 580)),
+    "room3_item1": ("room3_key1", (25, 670)),
+    "room4_item1": ("room4_key1", (25, 760)),
+    "room5_item1": ("room5_key1", (25, 850)),
+    "room6_item1": ("room6_key1", (25, 940))
     }
 key_inventory = []
 
 #Actors
 room_actor = Actor(room[room_index])
 magnifier = Actor("magnifier")
-invis_magnifier = Actor("magnifier2")
 speaker = Actor("speaker", (1864, 58))
 muted_speaker = Actor("speaker_mute", (1864, 58))
 start_button = Actor("start_button", (WIDTH / 2, 800))
@@ -119,14 +118,25 @@ hotspots = [
     # Die Punkte sind Panorama-Koordinaten, nicht die vom Screen
     Hotspot(
         points=[
-            (1379, 501),
-            (1418, 501),
-            (1418, 541),
-            (1379, 541)
+            (1851, 653),
+            (1885, 653),
+            (1885, 688),
+            (1851, 688)
         ],
-        room_index=items_room[0], #pacman
+        room_index=items_room[0], #room1_item1
         hotspot_type="item",
         reference_index=0
+    ),
+    Hotspot(
+        points=[
+            (629, 355),
+            (757, 355),
+            (757, 630),
+            (629, 630)
+        ],
+        room_index = doors_room[0],
+        hotspot_type="door",
+        reference_index = 0
     ),
     Hotspot(
         points=[
@@ -135,7 +145,7 @@ hotspots = [
             (1510, 544),
             (1472, 544)
         ],
-        room_index=items_room[1], #room1_item1
+        room_index=items_room[1], #room2_item1
         hotspot_type="item",
         reference_index=1
     ),
@@ -146,65 +156,54 @@ hotspots = [
             (2192, 688),
             (2101, 688)
         ],
-        room_index=doors_room[0],
+        room_index=doors_room[1],
         hotspot_type="door",
-        reference_index=0
-    ),
-    Hotspot(
-        points=[
-            (1851, 653),
-            (1885, 653),
-            (1885, 688),
-            (1851, 688)
-        ],
-        room_index=items_room[2], #room2_item1
-        hotspot_type="item",
-        reference_index=2
-    ),
-    Hotspot(
-        points=[
-            (629, 355),
-            (757, 355),
-            (757, 630),
-            (629, 630)
-        ],
-        room_index = doors_room[1],
-        hotspot_type="door",
-        reference_index = 1
-    ),
-        Hotspot(
-        points=[
-            (629, 355),
-            (757, 355),
-            (757, 630),
-            (629, 630)
-        ],
-        room_index = doors_room[2],
-        hotspot_type="door",
-        reference_index = 2
-    ),
-    Hotspot(
-        points=[
-            (629, 355),
-            (757, 355),
-            (757, 630),
-            (629, 630)
-        ],
-        room_index = doors_room[3],
-        hotspot_type="door",
-        reference_index = 3
-    ),
-    Hotspot(
-        points=[
-            (629, 355),
-            (757, 355),
-            (757, 630),
-            (629, 630)
-        ],
-        room_index = doors_room[4],
-        hotspot_type="door",
-        reference_index = 4
+        reference_index=1
     )
+    #Hotspot(
+        #points=[
+            #(629, 355),
+            #(757, 355),
+            #(757, 630),
+            #(629, 630)
+        #],
+        #room_index = doors_room[2],
+        #hotspot_type="door",
+        #reference_index = 2
+    #),
+    #Hotspot(
+        #points=[
+            #(629, 355),
+            #(757, 355),
+            #(757, 630),
+            #(629, 630)
+        #],
+        #room_index = doors_room[3],
+        #hotspot_type="door",
+        #reference_index = 3
+    #),
+    #Hotspot(
+        #points=[
+            #(629, 355),
+            #(757, 355),
+            #(757, 630),
+            #(629, 630)
+        #],
+        #room_index = doors_room[4],
+        #hotspot_type="door",
+        #reference_index = 4
+    #),
+    #Hotspot(
+        #points=[
+            #(629, 355),
+            #(757, 355),
+            #(757, 630),
+            #(629, 630)
+        #],
+        #room_index = doors_room[5],
+        #hotspot_type="door",
+        #reference_index = 5
+    #)
 ]
 
 def draw_large_item(screen, item_index):
@@ -344,7 +343,6 @@ def update():
     # print(Quiz.deduction_text)
 
     panorama_view.offset %= room_actor._surf.get_width() # ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
-    invis_magnifier.pos = mouse_klick_pos
     hovered_hotspot = None
     magnifier.pos = mouse_move_pos
     update_key_animation()
@@ -400,7 +398,7 @@ def update():
                 clicked_door_hotspot = None
 
                 if mouse_klick_pos != (0, 0):
-                    clicked_door_hotspot = find_hotspot_at_point(invis_magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH, "door")
+                    clicked_door_hotspot = find_hotspot_at_point(mouse_klick_pos, room_index, hotspots, panorama_view, GAME_WIDTH, "door")
                 if clicked_door_hotspot is not None:
                     i = clicked_door_hotspot.reference_index
                     if doors_room[i] == room_index:
@@ -419,7 +417,7 @@ def update():
                 if not door_clicked:
                     clicked_item_hotspot = None
                     if mouse_klick_pos != (0, 0):
-                        clicked_item_hotspot = find_hotspot_at_point(invis_magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH, "item")
+                        clicked_item_hotspot = find_hotspot_at_point(mouse_klick_pos, room_index, hotspots, panorama_view, GAME_WIDTH, "item")
                     if clicked_item_hotspot is not None:
                         i = clicked_item_hotspot.reference_index
                         if items_room[i] == room_index:
@@ -472,19 +470,14 @@ def quiz_taste_von_key(key):
         return "2"
     if key == pygame.K_3 or key == pygame.K_KP3:
         return "3"
-    if key == pygame.K_ESCAPE:
-        return "escape"
     return None
 
 def on_key_down(key):
-    global game_started, room_index, room, mute, item_large_pos, current_item_quiz, escape, game_over
+    global game_started, room_index, mute, item_large_pos, current_item_quiz, game_over, escape
 
     if Quiz.quiz_is_open():
         quiz_taste = quiz_taste_von_key(key)
         if quiz_taste is not None:
-            if quiz_taste == "escape":
-                close_quiz_with_key_animation()
-            else:
                 Quiz.press_key(quiz_taste)
         return
     if not game_started and keyboard.s:
@@ -498,9 +491,6 @@ def on_key_down(key):
             current_item_quiz = None
         if keyboard.M:
             mute = not mute
-        if keyboard.N:
-            escape = True
-            game_over = True
 
 def standard_box(x, y, width, height):
     box = Rect(x, y, width, height)
@@ -514,7 +504,7 @@ def standard_box(x, y, width, height):
         box,
         width=3
     )
-    return box
+
 
 def set_volume_back():
     global mistake_sound_playing
@@ -528,6 +518,7 @@ def stop_correct_sound():
     global correct_sound_startet
 
     Quiz.correct_sound_playing = False
+    close_quiz_with_key_animation()
     correct_sound_startet = False
 
     if not mute:
@@ -577,7 +568,6 @@ def restart_game():
     mouse_move_pos = (0, 0)
     mouse_klick_pos = (0, 0)
     magnifier.pos = mouse_move_pos
-    invis_magnifier.pos = mouse_klick_pos
 
     game_over = False
     escape = None
@@ -605,13 +595,6 @@ def pause_timer():
         timer_remaining = max(0, timer_remaining - vergangen)
         timer_paused = True
         timer_start = None
-
-def resume_timer():
-    global timer_start, timer_paused
-
-    if timer_paused and timer_remaining > 0:
-        timer_start = time.time()
-        timer_paused = False
 
 def get_remaining_time():
     if timer_paused or timer_start is None:
@@ -654,7 +637,7 @@ def draw_game():
         sounds.part2.set_volume(0)
         sounds.part3.set_volume(0)
         sounds.mistake.play()
-        clock.schedule_unique(set_volume_back, 1.1)
+        clock.schedule_unique(set_volume_back, 1)
         Quiz.deduction = False
     if Quiz.deduction_text:
         screen.draw.text("-1 Minute", topleft=(16, 112), fontsize=48, color="red")
@@ -665,7 +648,7 @@ def draw_game():
         sounds.part3.set_volume(0)
         sounds.correct_answer.set_volume(0.5)
         sounds.correct_answer.play()
-        clock.schedule_unique(stop_correct_sound, 0.7)
+        clock.schedule_unique(stop_correct_sound, 1)
 
     verbleibend = get_remaining_time()
     hours = verbleibend // 3600
@@ -727,16 +710,14 @@ def draw_game():
         box_y = (HEIGHT - box_height) // 2
         standard_box(box_x, box_y, box_width, box_height)
         screen.draw.text("Steuerung", center=(box_x + box_width / 2, box_y + 40), bold=True, fontsize=80, color="white")
-        screen.draw.text("A und D:", topleft=(box_x + 15, box_y + 112), bold=True, fontsize=38, color="white")
-        screen.draw.text("Bewege dich nach links oder rechts durch den Raum.", topleft=(box_x + 15, box_y + 144), fontsize=38, color="white")
-        screen.draw.text("Maus bewegen", topleft=(box_x + 15, box_y + 208), bold=True, fontsize=38, color="white")
-        screen.draw.text("Untersuche auff\u00e4llige Gegenst\u00e4nde.", topleft=(box_x + 15, box_y + 240), fontsize=38, color="white")
-        screen.draw.text("Linksklick", topleft=(box_x + 15, box_y + 304), bold=True, fontsize=38, color="white")
-        screen.draw.text("Sieh dir Gegenst\u00e4nde genauer an oder \u00f6ffne ein Quiz.", topleft=(box_x + 15, box_y + 336), fontsize=38, color="white")
-        screen.draw.text("ESC", topleft=(box_x + 15, box_y + 400), bold=True, fontsize=38, color="white")
-        screen.draw.text("Schliesse Bilder, Quizfragen und dieses Fenster", topleft=(box_x + 15, box_y + 432), fontsize=38, color="white")
-        screen.draw.text("Untersuche die R\u00e4ume aufmerksam, merke dir wichtige Hinweise und l\u00f6se die Quizfragen.", topleft=(box_x + 15, box_y + 496), fontsize=38, color="white")
-        screen.draw.text("Bei falscher Antwort gib es Abzug!", topleft=(box_x + 15, box_y + 528), fontsize=38, color="white")
+        screen.draw.text("A und D:", topleft=(box_x + 20, box_y + 112), bold=True, fontsize=38, color="white")
+        screen.draw.text("Bewege dich nach links oder rechts durch den Raum.", topleft=(box_x + 20, box_y + 144), fontsize=38, color="white")
+        screen.draw.text("Maus bewegen", topleft=(box_x + 20, box_y + 208), bold=True, fontsize=38, color="white")
+        screen.draw.text("Untersuche auff\u00e4llige Gegenst\u00e4nde.", topleft=(box_x + 20, box_y + 240), fontsize=38, color="white")
+        screen.draw.text("Linksklick", topleft=(box_x + 20, box_y + 304), bold=True, fontsize=38, color="white")
+        screen.draw.text("Sieh dir Gegenst\u00e4nde genauer an oder \u00f6ffne ein Quiz.", topleft=(box_x + 20, box_y + 336), fontsize=38, color="white")
+        screen.draw.text("Untersuche die R\u00e4ume aufmerksam, merke dir wichtige Hinweise und l\u00f6se die Quizfragen.", topleft=(box_x + 20, box_y + 400), fontsize=38, color="white")
+        screen.draw.text("Bei falscher Antwort gib es Abzug!", topleft=(box_x + 20, box_y + 432), fontsize=38, color="white")
         x.draw()
 
 def draw():

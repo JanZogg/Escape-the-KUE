@@ -1,20 +1,20 @@
 from pgzero import clock
 quizzes = {
     "room1_item1": {
-        "question": "Welche Angabe entspricht dem Innenwinkel von Pacmans Mund?",
-        "answers": [
-            "45°",
-            "π/3 rad im Bogenmass",
-            "100 gon im Gonmass"
-        ],
-        "correct": 2
-    },
-    "room2_item1": {
-        "question": "Welche Aussage trifft auf das lyrischen Ich am meisten zu?",
+        "question": "Welche Aussage trifft auf das lyrische Ich am meisten zu?",
         "answers": [
             "Das lyrische Ich gibt die Suche nach Bedeutung auf und passt sich der Gesellschaft an.",
             "Das lyrische Ich hat noch keine Antwort, sieht aber in der Suche und der eigenen Identität einen Sinn.",
             "Das lyrische Ich hat sein Lebensziel gefunden, fürchtet aber, es durch äussere Erwartungen zu verlieren."
+        ],
+        "correct": 2
+    },
+    "room2_item1": {
+        "question": "Welche Angabe entspricht dem Innenwinkel von Pacmans Mund?",
+        "answers": [
+            "45° im Gradmass ",
+            "π/3 rad im Bogenmass",
+            "100 gon im Gonmass"
         ],
         "correct": 2
     }
@@ -68,9 +68,6 @@ def quiz_is_solved(quiz_name):
 def press_key(key):
     global message, deduction, deduction_text, correct_sound_playing
 
-    if key == "escape":
-        close_quiz()
-        return
     if opened_quiz is None:
         return
     if key not in ["1", "2", "3"]:
