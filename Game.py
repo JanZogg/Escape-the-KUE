@@ -505,6 +505,10 @@ def standard_box(x, y, width, height):
         width=3
     )
 
+def overlay():
+    box_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT), pygame.SRCALPHA)
+    box_surface.fill((0, 0, 0, 100))
+    screen.surface.blit(box_surface, (0, 0))
 
 def set_volume_back():
     global mistake_sound_playing
@@ -613,6 +617,7 @@ def draw_game():
     panorama_view.draw(screen)
     draw_hotspot_overlay(screen, room_index, hovered_hotspot, show_hotspot_debug, hotspots, panorama_view)
     if not move and Quiz.opened_quiz is None:
+        overlay()
         box_width = 1216
         box_height = 576
         box_x = (WIDTH - box_width) // 2
@@ -628,6 +633,36 @@ def draw_game():
 
     if door_locked_text:
         screen.draw.text("T\u00fcre ist verschlossen", center=(WIDTH / 2, 864), fontsize=64, color="yellow")
+
+    #Steuerung
+    if show_controls:
+        overlay()
+        Quiz.game_is_frozen = True
+        box_width = 1216
+        box_height = 576
+        box_x = (WIDTH - box_width) // 2
+        box_y = (HEIGHT - box_height) // 2
+        standard_box(box_x, box_y, box_width, box_height)
+        screen.draw.text("Steuerung", center=(box_x + box_width / 2, box_y + 40), bold=True, fontsize=80, color="white")
+        screen.draw.text("A und D:", topleft=(box_x + 20, box_y + 100), bold=True, fontsize=38, color="white")
+        screen.draw.text("Bewege dich nach links oder rechts durch den Raum.", topleft=(box_x + 20, box_y + 130), fontsize=38, color="white")
+        screen.draw.text("Raum untersuchen", topleft=(box_x + 20, box_y + 185), bold=True, fontsize=38, color="white")
+        screen.draw.text("Bewege die Maus \u00fcber auff\u00e4llige Gegenst\u00e4nde und Hinweise.", topleft=(box_x + 20, box_y + 215), fontsize=38, color="white")
+        screen.draw.text("Linksklick", topleft=(box_x + 20, box_y + 270), bold=True, fontsize=38, color="white")
+        screen.draw.text("Sieh dir Gegenst\u00e4nde genauer an oder \u00f6ffne ein R\u00e4tsel.", topleft=(box_x + 20, box_y + 300), fontsize=38, color="white")
+        screen.draw.text("R\u00e4tsel l\u00f6sen.", bold=True, topleft=(box_x + 20, box_y + 355), fontsize=38, color="white")
+        screen.draw.text("W\u00e4hle mit 1, 2, oder 3 die richige Antwort aus.", topleft=(box_x + 20, box_y + 385), fontsize=38, color="white")
+        screen.draw.text("Ziel", topleft=(box_x + 20, box_y + 440), bold=True, fontsize=38, color="white")
+        screen.draw.text("Untersuche jeden Raum aufmerksam, merke dir wichtige Hinweise und l\u00f6se die R\u00e4tsel.", topleft=(box_x + 20, box_y + 470), fontsize=38, color="white")
+        screen.draw.text("Achtung:", topleft=(box_x + 20, box_y + 525), bold=True, fontsize=38, color="white")
+        screen.draw.text("Falsche Antworten kosten Zeit!", topleft=(box_x + 165, box_y + 525), fontsize=38, color="white")
+        x.draw()
+
+    if Quiz.opened_quiz is not None:
+        overlay()
+        Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, standard_box)
+        if Quiz.quiz_is_open():
+            x.draw()
 
     #Timer erstellt mit ChatGPT
     if Quiz.deduction:
@@ -696,29 +731,6 @@ def draw_game():
     #Hotbar
     standard_box(16, 480, 88, 560)
     draw_key_inventory()
-
-    Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, standard_box)
-    if Quiz.quiz_is_open():
-        x.draw()
-
-    #Steuerung
-    if show_controls:
-        Quiz.game_is_frozen = True
-        box_width = 1216
-        box_height = 576
-        box_x = (WIDTH - box_width) // 2
-        box_y = (HEIGHT - box_height) // 2
-        standard_box(box_x, box_y, box_width, box_height)
-        screen.draw.text("Steuerung", center=(box_x + box_width / 2, box_y + 40), bold=True, fontsize=80, color="white")
-        screen.draw.text("A und D:", topleft=(box_x + 20, box_y + 112), bold=True, fontsize=38, color="white")
-        screen.draw.text("Bewege dich nach links oder rechts durch den Raum.", topleft=(box_x + 20, box_y + 144), fontsize=38, color="white")
-        screen.draw.text("Maus bewegen", topleft=(box_x + 20, box_y + 208), bold=True, fontsize=38, color="white")
-        screen.draw.text("Untersuche auff\u00e4llige Gegenst\u00e4nde.", topleft=(box_x + 20, box_y + 240), fontsize=38, color="white")
-        screen.draw.text("Linksklick", topleft=(box_x + 20, box_y + 304), bold=True, fontsize=38, color="white")
-        screen.draw.text("Sieh dir Gegenst\u00e4nde genauer an oder \u00f6ffne ein Quiz.", topleft=(box_x + 20, box_y + 336), fontsize=38, color="white")
-        screen.draw.text("Untersuche die R\u00e4ume aufmerksam, merke dir wichtige Hinweise und l\u00f6se die Quizfragen.", topleft=(box_x + 20, box_y + 400), fontsize=38, color="white")
-        screen.draw.text("Bei falscher Antwort gib es Abzug!", topleft=(box_x + 20, box_y + 432), fontsize=38, color="white")
-        x.draw()
 
 def draw():
     if not game_started:

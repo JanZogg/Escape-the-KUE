@@ -1,4 +1,5 @@
 from pgzero import clock
+
 quizzes = {
     "room1_item1": {
         "question": "Welche Aussage trifft auf das lyrische Ich am meisten zu?",
