@@ -56,12 +56,22 @@ KEY_HOTBAR_MAX_SIZE = (77, 77)
 room = [
     "room1", #Deutsch
     "room2", #Mathematik
-    #"room3", #Geographie
-    #"room4", #Chemie
-    #"room5", #Phyik
-    #"room6", #Latein
+    "room3", #Geographie
+    "room4", #Chemie
+    "room5", #Biologie
+    "room6", #Latein
     "escaped"
     ]
+
+ROOM_START_CENTER_X = [
+    270,  #Raum 1: Deutsch
+    280,  #Raum 2: Mathematik
+    210,  #Raum 3: Geographie
+    3710, #Raum 4: Chemie
+    0,    #Raum 5: Biologie
+    260   #Raum 6: Latein
+    ]
+
 doors_room = [
     0, #Türe im Raum 0
     1, #Türe im Raum 1
@@ -71,23 +81,25 @@ doors_room = [
     99 #Schlusszeichen
     ]
 door_keys = [
-    "room1_item1",
+    "room1_item2",
     "room2_item1"
     ]
 items_room = [
     0, #room1_item1 im Raum 0
+    0, #room1_item2 im Raum 0
     1 #room2_item1 im Raum 1
     ]
 items_large = [
     Actor("room1_big1", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room1_big2", (WIDTH / 2, HEIGHT / 2)),
     Actor("room2_big1", (WIDTH / 2, HEIGHT / 2))
     ]
 quiz_items = {
-    0: "room1_item1",
-    1: "room2_item1"
+    1: "room1_item2",
+    2: "room2_item1"
     }
 key_animation_config = {
-    "room1_item1": ("room1_key1", (25, 490)),
+    "room1_item2": ("room1_key1", (25, 490)),
     "room2_item1": ("room2_key1", (25, 580)),
     "room3_item1": ("room3_key1", (25, 670)),
     "room4_item1": ("room4_key1", (25, 760)),
@@ -114,14 +126,27 @@ panorama_view = PanoramaView(
     focal_length=1120
 )
 
+def set_room_with_start_view(new_room_index):
+    panorama_view.set_room_image(room[new_room_index])
+
+    if new_room_index < len(ROOM_START_CENTER_X):
+        center_x = ROOM_START_CENTER_X[new_room_index]
+        panorama_view.offset = center_x - GAME_WIDTH / 2
+    else:
+        panorama_view.offset = 0
+
+    panorama_view.offset %= room_actor._surf.get_width()
+
+set_room_with_start_view(room_index)
+
 hotspots = [
     # Die Punkte sind Panorama-Koordinaten, nicht die vom Screen
     Hotspot(
         points=[
-            (1851, 653),
-            (1885, 653),
-            (1885, 688),
-            (1851, 688)
+            (2432, 531),
+            (2478, 531),
+            (2478, 560),
+            (2432, 560)
         ],
         room_index=items_room[0], #room1_item1
         hotspot_type="item",
@@ -129,10 +154,21 @@ hotspots = [
     ),
     Hotspot(
         points=[
-            (629, 355),
-            (757, 355),
-            (757, 630),
-            (629, 630)
+            (3087, 670),
+            (3120, 670),
+            (3120, 699),
+            (3087, 699)
+        ],
+        room_index=items_room[1], #room1_item2
+        hotspot_type="item",
+        reference_index=1
+    ),
+    Hotspot(
+        points=[
+            (3429, 327),
+            (3540, 338),
+            (3540, 585),
+            (3429, 605)
         ],
         room_index = doors_room[0],
         hotspot_type="door",
@@ -151,59 +187,15 @@ hotspots = [
     ),
     Hotspot(
         points=[
-            (2101, 438),
-            (2192, 438),
-            (2192, 688),
-            (2101, 688)
+            (2761, 289),
+            (2875, 274),
+            (2875, 515),
+            (2761, 493)
         ],
         room_index=doors_room[1],
         hotspot_type="door",
         reference_index=1
     )
-    #Hotspot(
-        #points=[
-            #(629, 355),
-            #(757, 355),
-            #(757, 630),
-            #(629, 630)
-        #],
-        #room_index = doors_room[2],
-        #hotspot_type="door",
-        #reference_index = 2
-    #),
-    #Hotspot(
-        #points=[
-            #(629, 355),
-            #(757, 355),
-            #(757, 630),
-            #(629, 630)
-        #],
-        #room_index = doors_room[3],
-        #hotspot_type="door",
-        #reference_index = 3
-    #),
-    #Hotspot(
-        #points=[
-            #(629, 355),
-            #(757, 355),
-            #(757, 630),
-            #(629, 630)
-        #],
-        #room_index = doors_room[4],
-        #hotspot_type="door",
-        #reference_index = 4
-    #),
-    #Hotspot(
-        #points=[
-            #(629, 355),
-            #(757, 355),
-            #(757, 630),
-            #(629, 630)
-        #],
-        #room_index = doors_room[5],
-        #hotspot_type="door",
-        #reference_index = 5
-    #)
 ]
 
 def draw_large_item(screen, item_index):
@@ -340,7 +332,7 @@ def close_quiz_with_key_animation():
 def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text
     global hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing, gameover_sound_playing
-    # print(Quiz.deduction_text)
+    # print(room_index)
 
     panorama_view.offset %= room_actor._surf.get_width() # ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
     hovered_hotspot = None
@@ -405,8 +397,7 @@ def update():
                         door_clicked = True
                         if Quiz.quiz_is_solved(door_keys[i]):
                             room_index = room_index + 1
-                            panorama_view.offset = 0
-                            panorama_view.set_room_image(room[room_index])
+                            set_room_with_start_view(room_index)
                             item_large_pos = None
                             current_item_quiz = None
                             if doors_room[room_index] == 99:
@@ -485,8 +476,7 @@ def on_key_down(key):
     if game_started:
         if keyboard.P:
             room_index = room_index + 1
-            panorama_view.offset = 0
-            panorama_view.set_room_image(room[room_index])
+            set_room_with_start_view(room_index)
             item_large_pos = None
             current_item_quiz = None
         if keyboard.M:
@@ -559,8 +549,7 @@ def restart_game():
 
     game_started = False
     room_index = 0
-    panorama_view.set_room_image(room[room_index])
-    panorama_view.offset = 0
+    set_room_with_start_view(room_index)
     speed = PANORAMA_BASE_SPEED
     panorama_view.speed = speed
 

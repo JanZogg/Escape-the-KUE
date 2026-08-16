@@ -1,7 +1,7 @@
 from pgzero import clock
 
 quizzes = {
-    "room1_item1": {
+    "room1_item2": {
         "question": "Welche Aussage trifft auf das lyrische Ich am meisten zu?",
         "answers": [
             "Das lyrische Ich gibt die Suche nach Bedeutung auf und passt sich der Gesellschaft an.",
