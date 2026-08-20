@@ -11,13 +11,13 @@ quizzes = {
         "correct": 2
     },
     "room2_item1": {
-        "question": "Welche Angabe entspricht dem Innenwinkel von Pacmans Mund?",
+        "question": "Was haben die folgenden Figuren gemeinsam?",
         "answers": [
-            "45° im Gradmass ",
-            "π/3 rad im Bogenmass",
-            "100 gon im Gonmass"
+            "Ihre Innenwinkelsumme beträgt 720°",
+            "Sie besitzen gleich viele Symmetrieachsen",
+            "Ihr Umfang beträgt jeweils 24cm"
         ],
-        "correct": 2
+        "correct": 1
     }
 }
 

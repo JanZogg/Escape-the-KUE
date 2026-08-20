@@ -1,4 +1,4 @@
-TITLE = "MaturaArbeit"
+aTITLE = "MaturaArbeit"
 GAME_WIDTH = 1920
 GAME_HEIGHT = 1080
 from pygame import Rect
@@ -87,12 +87,16 @@ door_keys = [
 items_room = [
     0, #room1_item1 im Raum 0
     0, #room1_item2 im Raum 0
-    1 #room2_item1 im Raum 1
+    1, #room2_item1 im Raum 1
+    1, #room2_item2 im Raum 1
+    1 #room2_item3 im Raum 1
     ]
 items_large = [
     Actor("room1_big1", (WIDTH / 2, HEIGHT / 2)),
     Actor("room1_big2", (WIDTH / 2, HEIGHT / 2)),
-    Actor("room2_big1", (WIDTH / 2, HEIGHT / 2))
+    Actor("room2_big1", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room2_big2", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room2_big3", (WIDTH / 2, HEIGHT / 2))
     ]
 quiz_items = {
     1: "room1_item2",
@@ -176,14 +180,14 @@ hotspots = [
     ),
     Hotspot(
         points=[
-            (1472, 504),
-            (1510, 504),
-            (1510, 544),
-            (1472, 544)
+            (3281, 370),
+            (3372, 370),
+            (3372, 506),
+            (3281, 506)
         ],
-        room_index=items_room[1], #room2_item1
+        room_index=items_room[2], #room2_item1
         hotspot_type="item",
-        reference_index=1
+        reference_index=2
     ),
     Hotspot(
         points=[
@@ -195,6 +199,30 @@ hotspots = [
         room_index=doors_room[1],
         hotspot_type="door",
         reference_index=1
+    ),
+    Hotspot(
+        points=[
+            (3870, 498),
+            (3941, 506),
+            (3936, 524),
+            (3865, 517)
+        ],
+        room_index=items_room[3], #room2_item2
+        hotspot_type="item",
+        reference_index=3
+    ),
+    Hotspot(
+        points=[
+            (2213, 337),
+            (2231, 337),
+            (2241, 353),
+            (2231, 371),
+            (2213, 371),
+            (2204, 353)
+        ],
+        room_index=items_room[4], #room2_item3
+        hotspot_type="item",
+        reference_index=4
     )
 ]
 
