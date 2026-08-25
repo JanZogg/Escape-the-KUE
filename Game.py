@@ -1,4 +1,4 @@
-aTITLE = "MaturaArbeit"
+TITLE = "MaturaArbeit"
 GAME_WIDTH = 1920
 GAME_HEIGHT = 1080
 from pygame import Rect
@@ -37,7 +37,7 @@ timer_paused = False
 timer_remaining = timer_duration
 door_locked_text = False
 current_song = None
-mute = True
+mute = False
 escape = None
 game_over = False
 correct_sound_startet = False
@@ -75,32 +75,40 @@ ROOM_START_CENTER_X = [
 doors_room = [
     0, #Türe im Raum 0
     1, #Türe im Raum 1
-    #2, #Türe im Raum 2
+    2, #Türe im Raum 2
     #3, #Türe im Raum 3
     #4, #Türe im Raum 4
     99 #Schlusszeichen
     ]
 door_keys = [
     "room1_item2",
-    "room2_item1"
+    "room2_item1",
+    "room3_item1"
     ]
 items_room = [
     0, #room1_item1 im Raum 0
     0, #room1_item2 im Raum 0
     1, #room2_item1 im Raum 1
     1, #room2_item2 im Raum 1
-    1 #room2_item3 im Raum 1
+    1, #room2_item3 im Raum 1
+    2, #room3_item1 im Raum 2
+    2, #room3_item2 im Raum 2
+    2 #room3_item3 im Raum 2
     ]
 items_large = [
     Actor("room1_big1", (WIDTH / 2, HEIGHT / 2)),
     Actor("room1_big2", (WIDTH / 2, HEIGHT / 2)),
     Actor("room2_big1", (WIDTH / 2, HEIGHT / 2)),
     Actor("room2_big2", (WIDTH / 2, HEIGHT / 2)),
-    Actor("room2_big3", (WIDTH / 2, HEIGHT / 2))
+    Actor("room2_big3", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room3_big1", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room3_big2", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room3_big3", (WIDTH / 2, HEIGHT / 2))
     ]
 quiz_items = {
     1: "room1_item2",
-    2: "room2_item1"
+    2: "room2_item1",
+    5: "room3_item1"
     }
 key_animation_config = {
     "room1_item2": ("room1_key1", (25, 490)),
@@ -223,6 +231,50 @@ hotspots = [
         room_index=items_room[4], #room2_item3
         hotspot_type="item",
         reference_index=4
+    ),
+    Hotspot(
+        points=[
+            (3651, 279),
+            (3753, 291),
+            (3753, 496),
+            (3651, 496)
+        ],
+        room_index=doors_room[2],
+        hotspot_type="door",
+        reference_index=2
+    ),
+    Hotspot(
+        points=[
+            (458, 246),
+            (685, 246),
+            (685, 404),
+            (458, 404)
+        ],
+        room_index=items_room[5], #room3_item1
+        hotspot_type="item",
+        reference_index=5
+    ),
+    Hotspot(
+        points=[
+            (1220, 452),
+            (1320, 452),
+            (1320, 479),
+            (1220, 479)
+        ],
+        room_index=items_room[6], #room3_item2
+        hotspot_type="item",
+        reference_index=6
+    ),
+    Hotspot(
+        points=[
+            (2098, 305),
+            (2190, 305),
+            (2190, 436),
+            (2098, 436)
+        ],
+        room_index=items_room[7], #room3_item3
+        hotspot_type="item",
+        reference_index=7
     )
 ]
 
@@ -232,6 +284,7 @@ def draw_large_item(screen, item_index):
         int(large_item.x - large_item.width / 2),
         int(large_item.y - large_item.height / 2)
     )
+
     screen.blit(large_item.image, top_left)
 
 def puzzle_button_is_visible():

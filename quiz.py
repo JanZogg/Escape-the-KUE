@@ -18,6 +18,15 @@ quizzes = {
             "Ihr Umfang beträgt jeweils 24cm"
         ],
         "correct": 1
+    },
+    "room3_item1": {
+        "question": "1. Buchstabe | alles ohne c, d, e | letzter Buchstabe | 3. Buchstabe = ?",
+        "answers": [
+            "asdf",
+            "asdf",
+            "asdf"
+        ],
+        "correct": 3
     }
 }
 
