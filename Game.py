@@ -19,11 +19,11 @@ pygame.mouse.set_visible(False)
 # ü = \u00fc
 WIDTH = GAME_WIDTH
 HEIGHT = GAME_HEIGHT
-PANORAMA_BASE_SPEED = 6.4
-PANORAMA_MAX_SPEED = 12.8
+panorama_base_speed = 6.4
+panorama_max_speed = 12.8
 game_started = False
 move = True
-speed = PANORAMA_BASE_SPEED
+speed = panorama_base_speed
 room_index = 0
 mouse_move_pos = (0, 0)
 mouse_klick_pos = (0, 0)
@@ -48,9 +48,12 @@ show_controls = True
 active_key_animation = None
 
 # Einstellungen für die Schlüsselanimation.
-KEY_ANIMATION_HOLD_DURATION = 0.5
-KEY_ANIMATION_FLIGHT_DURATION = 0.75
-KEY_HOTBAR_MAX_SIZE = (77, 77)
+key_animation_hold_duration = 0.5
+key_animation_flight_duration = 0.75
+key_hotbar_max_size = (77, 77)
+
+# Einstellung für image_big Grösse
+big_image_max_height = 550
 
 #Listen
 room = [
@@ -63,7 +66,7 @@ room = [
     "escaped"
     ]
 
-ROOM_START_CENTER_X = [
+room_start_center_x = [
     270,  #Raum 1: Deutsch
     280,  #Raum 2: Mathematik
     210,  #Raum 3: Geographie
@@ -105,6 +108,7 @@ items_large = [
     Actor("room3_big2", (WIDTH / 2, HEIGHT / 2)),
     Actor("room3_big3", (WIDTH / 2, HEIGHT / 2))
     ]
+scaled_big_image_cache = {}
 quiz_items = {
     1: "room1_item2",
     2: "room2_item1",
@@ -141,8 +145,8 @@ panorama_view = PanoramaView(
 def set_room_with_start_view(new_room_index):
     panorama_view.set_room_image(room[new_room_index])
 
-    if new_room_index < len(ROOM_START_CENTER_X):
-        center_x = ROOM_START_CENTER_X[new_room_index]
+    if new_room_index < len(room_start_center_x):
+        center_x = room_start_center_x[new_room_index]
         panorama_view.offset = center_x - GAME_WIDTH / 2
     else:
         panorama_view.offset = 0
@@ -278,14 +282,35 @@ hotspots = [
     )
 ]
 
+def scale_big_image(image_surface, max_height=big_image_max_height):
+    image_width, image_height = image_surface.get_size()
+
+    # Kleine Bilder bleiben in ihrer Originalgrösse.
+    if image_height <= max_height:
+        return image_surface
+
+    scale_factor = max_height / image_height
+    scaled_size = (
+        max(1, round(image_width * scale_factor)),
+        max_height
+    )
+    return pygame.transform.smoothscale(image_surface, scaled_size)
+
+def get_scaled_big_image(image_name):
+    if image_name not in scaled_big_image_cache:
+        # Actor.image ist nur der Bildname. Erst images.<name> liefert die Surface.
+        image_surface = getattr(images, image_name)
+        scaled_big_image_cache[image_name] = scale_big_image(image_surface)
+
+    return scaled_big_image_cache[image_name]
+
 def draw_large_item(screen, item_index):
     large_item = items_large[item_index]
-    top_left = (
-        int(large_item.x - large_item.width / 2),
-        int(large_item.y - large_item.height / 2)
+    scaled_image = get_scaled_big_image(large_item.image)
+    image_rect = scaled_image.get_rect(
+        center=(round(large_item.x), round(large_item.y))
     )
-
-    screen.blit(large_item.image, top_left)
+    screen.surface.blit(scaled_image, image_rect)
 
 def puzzle_button_is_visible():
     return (
@@ -297,7 +322,7 @@ def puzzle_button_is_visible():
 
 def get_key_hotbar_size(key_image):
     image_width, image_height = key_image.get_size() # Ursprünglihce Bildgrösse
-    max_width, max_height = KEY_HOTBAR_MAX_SIZE
+    max_width, max_height = key_hotbar_max_size
     scale = min(max_width / image_width, max_height / image_height) # Berechnet den kleineren Verkleinerungsfaktor, ChatGPT
     return (
         max(1, round(image_width * scale)),
@@ -338,11 +363,11 @@ def update_key_animation(): # Codex
         return
 
     elapsed = time.time() - active_key_animation["start_time"] # Wie lange Animation schon läuft
-    if elapsed <= KEY_ANIMATION_HOLD_DURATION:
+    if elapsed <= key_animation_hold_duration:
         return
 
-    flight_elapsed = elapsed - KEY_ANIMATION_HOLD_DURATION # Flugzeit
-    progress = min(flight_elapsed / KEY_ANIMATION_FLIGHT_DURATION, 1) # Fortschritt
+    flight_elapsed = elapsed - key_animation_hold_duration # Flugzeit
+    progress = min(flight_elapsed / key_animation_flight_duration, 1) # Fortschritt
 
     # Verkleinerung berechnen
     start_width, start_height = active_key_animation["start_size"]
@@ -451,16 +476,16 @@ def update():
                 speed = speed * 1.005
                 panorama_view.speed = speed
                 panorama_view.move_left()
-                if speed > PANORAMA_MAX_SPEED:
-                    speed = PANORAMA_MAX_SPEED
+                if speed > panorama_max_speed:
+                    speed = panorama_max_speed
             elif keyboard.D and move and not quiz_open:
                 panorama_view.speed = speed
                 panorama_view.move_right()
                 speed = speed * 1.005
-                if speed > PANORAMA_MAX_SPEED:
-                    speed = PANORAMA_MAX_SPEED
+                if speed > panorama_max_speed:
+                    speed = panorama_max_speed
             else:
-                speed = PANORAMA_BASE_SPEED
+                speed = panorama_base_speed
 
             if mouse_klick_pos != (0, 0):
                 door_locked_text = False
@@ -631,7 +656,7 @@ def restart_game():
     game_started = False
     room_index = 0
     set_room_with_start_view(room_index)
-    speed = PANORAMA_BASE_SPEED
+    speed = panorama_base_speed
     panorama_view.speed = speed
 
     item_large_pos = None
