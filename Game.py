@@ -37,7 +37,7 @@ timer_paused = False
 timer_remaining = timer_duration
 door_locked_text = False
 current_song = None
-mute = False
+mute = True
 escape = None
 game_over = False
 correct_sound_startet = False
@@ -86,7 +86,7 @@ doors_room = [
 door_keys = [
     "room1_item2",
     "room2_item1",
-    "room3_item1"
+    "room3_item4"
     ]
 items_room = [
     0, #room1_item1 im Raum 0
@@ -96,7 +96,9 @@ items_room = [
     1, #room2_item3 im Raum 1
     2, #room3_item1 im Raum 2
     2, #room3_item2 im Raum 2
-    2 #room3_item3 im Raum 2
+    2, #room3_item3 im Raum 2
+    2, #room3_item4 im Raum 2
+    2 #room3_item5 im Raum 2
     ]
 items_large = [
     Actor("room1_big1", (WIDTH / 2, HEIGHT / 2)),
@@ -106,18 +108,20 @@ items_large = [
     Actor("room2_big3", (WIDTH / 2, HEIGHT / 2)),
     Actor("room3_big1", (WIDTH / 2, HEIGHT / 2)),
     Actor("room3_big2", (WIDTH / 2, HEIGHT / 2)),
-    Actor("room3_big3", (WIDTH / 2, HEIGHT / 2))
+    Actor("room3_big3", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room3_big4", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room3_big5", (WIDTH / 2, HEIGHT / 2))
     ]
 scaled_big_image_cache = {}
 quiz_items = {
     1: "room1_item2",
     2: "room2_item1",
-    5: "room3_item1"
+    8: "room3_item4"
     }
 key_animation_config = {
     "room1_item2": ("room1_key1", (25, 490)),
     "room2_item1": ("room2_key1", (25, 580)),
-    "room3_item1": ("room3_key1", (25, 670)),
+    "room3_item4": ("room3_key1", (25, 670)),
     "room4_item1": ("room4_key1", (25, 760)),
     "room5_item1": ("room5_key1", (25, 850)),
     "room6_item1": ("room6_key1", (25, 940))
@@ -279,6 +283,30 @@ hotspots = [
         room_index=items_room[7], #room3_item3
         hotspot_type="item",
         reference_index=7
+    ),
+    Hotspot(
+        points=[
+            (569, 448),
+            (593, 445),
+            (615, 454),
+            (615, 471),
+            (589, 474),
+            (569, 464)
+        ],
+        room_index=items_room[8], #room3_item4
+        hotspot_type="item",
+        reference_index=8
+    ),
+    Hotspot(
+        points=[
+            (3570, 310),
+            (3634, 310),
+            (3634, 415),
+            (3570, 415)
+        ],
+        room_index=items_room[9], #room3_item5
+        hotspot_type="item",
+        reference_index=9
     )
 ]
 
@@ -442,7 +470,7 @@ def update():
 
     panorama_view.offset %= room_actor._surf.get_width() # ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
     hovered_hotspot = None
-    magnifier.pos = mouse_move_pos
+    magnifier.pos = (mouse_move_pos[0] + 5, mouse_move_pos[1] + 15)
     update_key_animation()
 
     if not game_started:
@@ -490,7 +518,7 @@ def update():
             if mouse_klick_pos != (0, 0):
                 door_locked_text = False
             if move and not quiz_open:
-                hovered_hotspot = find_hotspot_at_point(magnifier.pos, room_index, hotspots, panorama_view, GAME_WIDTH)
+                hovered_hotspot = find_hotspot_at_point(mouse_move_pos, room_index, hotspots, panorama_view, GAME_WIDTH)
 
                 door_clicked = False
                 clicked_door_hotspot = None
@@ -567,6 +595,10 @@ def quiz_taste_von_key(key):
         return "2"
     if key == pygame.K_3 or key == pygame.K_KP3:
         return "3"
+    if key == pygame.K_4 or key == pygame.K_KP4:
+        return "4"
+    if key == pygame.K_5 or key == pygame.K_KP5:
+        return "5"
     return None
 
 def on_key_down(key):

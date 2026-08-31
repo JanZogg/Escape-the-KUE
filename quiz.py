@@ -6,27 +6,34 @@ quizzes = {
         "answers": [
             "Das lyrische Ich gibt die Suche nach Bedeutung auf und passt sich der Gesellschaft an.",
             "Das lyrische Ich hat noch keine Antwort, sieht aber in der Suche und der eigenen Identität einen Sinn.",
-            "Das lyrische Ich hat sein Lebensziel gefunden, fürchtet aber, es durch äussere Erwartungen zu verlieren."
+            "Das lyrische Ich hat sein Lebensziel gefunden, fürchtet aber, es durch äussere Erwartungen zu verlieren.",
+            "Das lyrische Ich gibt die Suche noch nicht auf aber ist kurz davor aufzugeben."
         ],
-        "correct": 2
+        "correct": 2,
+        "rätsel_type": 4
     },
     "room2_item1": {
         "question": "Was haben die folgenden Figuren gemeinsam?",
         "answers": [
             "Ihre Innenwinkelsumme beträgt 720°",
             "Sie besitzen gleich viele Symmetrieachsen",
-            "Ihr Umfang beträgt jeweils 24cm"
+            "Ihr Umfang beträgt jeweils 24cm",
+            "Nichts der oberen angaben"
         ],
-        "correct": 1
+        "correct": 1,
+        "rätsel_type": 4
     },
-    "room3_item1": {
-        "question": "1. Buchstabe | alles ohne c, d, e | letzter Buchstabe | 3. Buchstabe = ?",
+    "room3_item4": {
+        "question": "1) 5. Buchstabe | 2) 1. Buchstabe | 3) 3. Buchstabe = ?",
         "answers": [
-            "asdf",
-            "asdf",
-            "asdf"
+            "XPT",
+            "CPH",
+            "XPC",
+            "CPN",
+            "XOL"
         ],
-        "correct": 3
+        "correct": 2,
+        "rätsel_type": 5
     }
 }
 
@@ -80,11 +87,14 @@ def press_key(key):
 
     if opened_quiz is None:
         return
-    if key not in ["1", "2", "3"]:
+    if key not in ["1", "2", "3", "4", "5"]:
         return
 
     question = quizzes[opened_quiz]
     chosen_answer = int(key)
+
+    if not 1 <= chosen_answer <= len(question["answers"]):
+        return
 
     if game_is_frozen:
         return
@@ -131,19 +141,32 @@ def draw_quiz(screen, width, height, standard_box):
         align="center",
         color="white"
     )
-
     y = box_y + 152
-    for number, answer in enumerate(question["answers"], start=1):
-        text = str(number) + ". " + answer
-        screen.draw.text(
-            text,
-            topleft=(box_x + 112, y),
-            width=box_width - 224,
-            fontsize=40,
-            lineheight=0.85,
-            color="white"
-        )
-        y += 112
+
+    if question["rätsel_type"] == 4:
+        for number, answer in enumerate(question["answers"], start=1):
+            text = str(number) + ". " + answer
+            screen.draw.text(
+                text,
+                topleft=(box_x + 90, y),
+                width=box_width - 224,
+                fontsize=40,
+                lineheight=0.85,
+                color="white"
+            )
+            y += 90
+    elif question["rätsel_type"] == 5:
+        for number, answer in enumerate(question["answers"], start=1):
+            text = str(number) + ". " + answer
+            screen.draw.text(
+                text,
+                topleft=(box_x + 90, y),
+                width=box_width - 224,
+                fontsize=40,
+                lineheight=0.85,
+                color="white"
+            )
+            y += 80
     if message != "":
         if message == "Richtig":
             screen.draw.text(message, center=(width / 2, box_y + box_height - 40), fontsize=45, color="green")
