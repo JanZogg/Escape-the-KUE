@@ -79,14 +79,17 @@ doors_room = [
     0, #Türe im Raum 0
     1, #Türe im Raum 1
     2, #Türe im Raum 2
-    #3, #Türe im Raum 3
-    #4, #Türe im Raum 4
+    3, #Türe im Raum 3
+    4, #Türe im Raum 4
+    #5, #Türe im Raum 5
     99 #Schlusszeichen
     ]
 door_keys = [
     "room1_item2",
     "room2_item1",
-    "room3_item4"
+    "room3_item4",
+    "room4_item1",
+    "room5_item1"
     ]
 items_room = [
     0, #room1_item1 im Raum 0
@@ -98,7 +101,15 @@ items_room = [
     2, #room3_item2 im Raum 2
     2, #room3_item3 im Raum 2
     2, #room3_item4 im Raum 2
-    2 #room3_item5 im Raum 2
+    2, #room3_item5 im Raum 2
+    3, #room4_item1 im Raum 3
+    3, #room4_item2 im Raum 3
+    3, #room4_item3 im Raum 3
+    3, #room4_item4 im Raum 3
+    3, #room4_item5 im Raum 3
+    3, #room4_item6 im Raum 3
+    3, #room4_item7 im Raum 3
+    4 #room5_item1 im Raum 4
     ]
 items_large = [
     Actor("room1_big1", (WIDTH / 2, HEIGHT / 2)),
@@ -110,16 +121,26 @@ items_large = [
     Actor("room3_big2", (WIDTH / 2, HEIGHT / 2)),
     Actor("room3_big3", (WIDTH / 2, HEIGHT / 2)),
     Actor("room3_big4", (WIDTH / 2, HEIGHT / 2)),
-    Actor("room3_big5", (WIDTH / 2, HEIGHT / 2))
+    Actor("room3_big5", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room4_big1", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room4_big2", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room4_big3", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room4_big4", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room4_big5", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room4_big6", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room4_big7", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room5_big1", (WIDTH / 2, HEIGHT / 2))
     ]
 scaled_big_image_cache = {}
 quiz_items = {
     1: "room1_item2",
     2: "room2_item1",
-    8: "room3_item4"
+    8: "room3_item4",
+    10: "room4_item1",
+    17: "room5_item1"
     }
 key_animation_config = {
-    "room1_item2": ("room1_key1", (25, 490)),
+    "room1_item2": ("room5_key1", (25, 490)),
     "room2_item1": ("room2_key1", (25, 580)),
     "room3_item4": ("room3_key1", (25, 670)),
     "room4_item1": ("room4_key1", (25, 760)),
@@ -307,6 +328,116 @@ hotspots = [
         room_index=items_room[9], #room3_item5
         hotspot_type="item",
         reference_index=9
+    ),
+    Hotspot(
+        points=[
+            (3115, 298),
+            (3204, 312),
+            (3197, 528),
+            (3115, 555)
+        ],
+        room_index=doors_room[3],
+        hotspot_type="door",
+        reference_index=3
+    ),
+    Hotspot(
+        points=[
+            (3250, 240),
+            (3456, 218),
+            (3479, 314),
+            (3288, 323)
+        ],
+        room_index=items_room[10], #room4_item1
+        hotspot_type="item",
+        reference_index=10
+    ),
+    Hotspot(
+        points=[
+            (2147, 466),
+            (2176, 466),
+            (2176, 511),
+            (2147, 511)
+        ],
+        room_index=items_room[11], #room4_item2
+        hotspot_type="item",
+        reference_index=11
+    ),
+    Hotspot(
+        points=[
+            (3600, 432),
+            (3634, 432),
+            (3634, 494),
+            (3600, 494)
+        ],
+        room_index=items_room[12], #room4_item3
+        hotspot_type="item",
+        reference_index=12
+    ),
+    Hotspot(
+        points=[
+            (3450, 358),
+            (3496, 358),
+            (3496, 428),
+            (3450, 428)
+        ],
+        room_index=items_room[13], #room4_item4
+        hotspot_type="item",
+        reference_index=13
+    ),
+    Hotspot(
+        points=[
+            (1691, 307),
+            (1834, 307),
+            (1834, 412),
+            (1691, 412)
+        ],
+        room_index=items_room[14], #room4_item5
+        hotspot_type="item",
+        reference_index=14
+    ),
+    Hotspot(
+        points=[
+            (1915, 316),
+            (2026, 316),
+            (2026, 407),
+            (1915, 407)
+        ],
+        room_index=items_room[15], #room4_item6
+        hotspot_type="item",
+        reference_index=15
+    ),
+    Hotspot(
+        points=[
+            (2660, 316),
+            (2707, 316),
+            (2707, 359),
+            (2660, 359)
+        ],
+        room_index=items_room[16], #room4_item7
+        hotspot_type="item",
+        reference_index=16
+    ),
+        Hotspot(
+        points=[
+            (3572, 314),
+            (3687, 304),
+            (3687, 551),
+            (3572, 547)
+        ],
+        room_index=doors_room[4],
+        hotspot_type="door",
+        reference_index=4
+    ),
+    Hotspot(
+        points=[
+            (1644, 250),
+            (1744, 250),
+            (1744, 358),
+            (1644, 358)
+        ],
+        room_index=items_room[17], #room5_item1
+        hotspot_type="item",
+        reference_index=17
     )
 ]
 

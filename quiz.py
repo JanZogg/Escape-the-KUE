@@ -34,6 +34,18 @@ quizzes = {
         ],
         "correct": 2,
         "rätsel_type": 5
+    },
+    "room4_item1": {
+        "question": "Welche Elementkette ist Raum versteckt",
+        "answers": [
+            "xx - W - F - Al",
+            "F - S - Ca - W",
+            "Be - xx - W - Ca",
+            "W - Ca - B- S",
+            "Al - Ca - B - F"
+        ],
+        "correct": 4,
+        "rätsel_type": 5
     }
 }
 
