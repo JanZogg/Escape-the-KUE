@@ -38,14 +38,25 @@ quizzes = {
     "room4_item1": {
         "question": "Welche Elementkette ist Raum versteckt",
         "answers": [
-            "xx - W - F - Al",
+            "B - W - F - Al",
             "F - S - Ca - W",
-            "Be - xx - W - Ca",
-            "W - Ca - B- S",
+            "Be - Al - W - Ca",
+            "W - Ca - S - B",
             "Al - Ca - B - F"
         ],
         "correct": 4,
         "rätsel_type": 5
+    },
+    "room5_item1": {
+        "question": "Wie Alt wurde dieser Büffel?",
+        "answers": [
+            "32",
+            "28",
+            "24",
+            "20"
+        ],
+        "correct": 4,
+        "rätsel_type": 4
     }
 }
 
