@@ -89,7 +89,8 @@ door_keys = [
     "room2_item1",
     "room3_item4",
     "room4_item1",
-    "room5_item1"
+    "room5_item1",
+    "room6_item1"
     ]
 items_room = [
     0, #room1_item1 im Raum 0
@@ -114,7 +115,14 @@ items_room = [
     4, #room5_item3 im Raum 4
     4, #room5_item4 im Raum 4
     4, #room5_item5 im Raum 4
-    5 #room6_item1 im Raum 5
+    5, #room6_item1 im Raum 5
+    5, #room6_item2 im Raum 5
+    5, #room6_item3 im Raum 5
+    5, #room6_item4 im Raum 5
+    5, #room6_item5 im Raum 5
+    5, #room6_item6 im Raum 5
+    5, #room6_item7 im Raum 5
+    5 #room6_item7 im Raum 5
     ]
 items_large = [
     Actor("room1_big1", (WIDTH / 2, HEIGHT / 2)),
@@ -139,7 +147,14 @@ items_large = [
     Actor("room5_big3", (WIDTH / 2, HEIGHT / 2)),
     Actor("room5_big4", (WIDTH / 2, HEIGHT / 2)),
     Actor("room5_big5", (WIDTH / 2, HEIGHT / 2)),
-    Actor("room6_big1", (WIDTH / 2, HEIGHT / 2))
+    Actor("room6_big1", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room6_big2", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room6_big3", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room6_big4", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room6_big5", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room6_big6", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room6_big7", (WIDTH / 2, HEIGHT / 2)),
+    Actor("room6_big8", (WIDTH / 2, HEIGHT / 2))
     ]
 scaled_big_image_cache = {}
 quiz_items = {
@@ -507,14 +522,91 @@ hotspots = [
     ),
     Hotspot(
         points=[
-            (1682, 362),
-            (1705, 362),
-            (1705, 380),
-            (1682, 380)
+            (805, 753),
+            (864, 753),
+            (864, 778),
+            (805, 778)
         ],
         room_index=items_room[22], #room6_item1
         hotspot_type="item",
         reference_index=22
+    ),
+    Hotspot(
+        points=[
+            (3343, 390),
+            (3413, 390),
+            (3413, 497),
+            (3343, 497)
+        ],
+        room_index=items_room[23], #room6_item2
+        hotspot_type="item",
+        reference_index=23
+    ),
+    Hotspot(
+        points=[
+            (3213, 392),
+            (3313, 392),
+            (3313, 486),
+            (3213, 486)
+        ],
+        room_index=items_room[24], #room6_item3
+        hotspot_type="item",
+        reference_index=24
+    ),
+    Hotspot(
+        points=[
+            (3069, 403),
+            (3195, 403),
+            (3195, 482),
+            (3069, 482)
+        ],
+        room_index=items_room[25], #room6_item4
+        hotspot_type="item",
+        reference_index=25
+    ),
+    Hotspot(
+        points=[
+            (1862, 470),
+            (1891, 470),
+            (1891, 495),
+            (1862, 495)
+        ],
+        room_index=items_room[26], #room6_item5
+        hotspot_type="item",
+        reference_index=26
+    ),
+    Hotspot(
+        points=[
+            (2181, 580),
+            (2205, 580),
+            (2205, 593),
+            (2181, 593)
+        ],
+        room_index=items_room[27], #room6_item6
+        hotspot_type="item",
+        reference_index=27
+    ),
+    Hotspot(
+        points=[
+            (1896, 599),
+            (1928, 599),
+            (1928, 625),
+            (1896, 625)
+        ],
+        room_index=items_room[28], #room6_item7
+        hotspot_type="item",
+        reference_index=28
+    ),
+    Hotspot(
+        points=[
+            (899, 271),
+            (1008, 271),
+            (1008, 471),
+            (899, 471)
+        ],
+        room_index=items_room[29], #room6_item8
+        hotspot_type="item",
+        reference_index=29
     )
 ]
 

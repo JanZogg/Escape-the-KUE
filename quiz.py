@@ -57,6 +57,18 @@ quizzes = {
         ],
         "correct": 4,
         "rätsel_type": 4
+    },
+    "room6_item1": {
+        "question": "Finde das versteckte Wort?",
+        "answers": [
+            "F - I - Q",
+            "F - E - T",
+            "F - I - N",
+            "F - E - S",
+            "F - E - R"
+        ],
+        "correct": 3,
+        "rätsel_type": 5
     }
 }
 
