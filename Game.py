@@ -880,6 +880,8 @@ def on_mouse_down(pos):
     if Quiz.quiz_is_open():
         if x.collidepoint(pos):
             close_quiz_with_key_animation()
+        else:
+            Quiz.click_quiz(pos, GAME_WIDTH, GAME_HEIGHT)
         return
     if puzzle_button_is_visible() and puzzle_button.collidepoint(pos):
         if Quiz.open_quiz(current_item_quiz):
@@ -897,8 +899,13 @@ def quiz_taste_von_key(key):
         return "3"
     if key == pygame.K_4 or key == pygame.K_KP4:
         return "4"
-    if key == pygame.K_5 or key == pygame.K_KP5:
-        return "5"
+    if key == pygame.K_TAB:
+        return "tab"
+    if key == pygame.K_BACKSPACE:
+        return "backspace"
+    letter = pygame.key.name(key)
+    if len(letter) == 1 and letter.isalpha():
+        return letter
     return None
 
 def on_key_down(key):
@@ -907,7 +914,7 @@ def on_key_down(key):
     if Quiz.quiz_is_open():
         quiz_taste = quiz_taste_von_key(key)
         if quiz_taste is not None:
-                Quiz.press_key(quiz_taste)
+            Quiz.press_key(quiz_taste)
         return
     if not game_started and keyboard.s:
         game_started = True
@@ -1078,7 +1085,7 @@ def draw_game():
         screen.draw.text("Linksklick", topleft=(box_x + 20, box_y + 270), bold=True, fontsize=38, color="white")
         screen.draw.text("Sieh dir Gegenst\u00e4nde genauer an oder \u00f6ffne ein R\u00e4tsel.", topleft=(box_x + 20, box_y + 300), fontsize=38, color="white")
         screen.draw.text("R\u00e4tsel l\u00f6sen.", bold=True, topleft=(box_x + 20, box_y + 355), fontsize=38, color="white")
-        screen.draw.text("W\u00e4hle mit 1, 2, oder 3 die richige Antwort aus.", topleft=(box_x + 20, box_y + 385), fontsize=38, color="white")
+        screen.draw.text("W\u00e4hle mit 1 bis 4 oder f\u00fclle die Felder aus und klicke auf Pr\u00fcfen.", topleft=(box_x + 20, box_y + 385), fontsize=38, color="white")
         screen.draw.text("Ziel", topleft=(box_x + 20, box_y + 440), bold=True, fontsize=38, color="white")
         screen.draw.text("Untersuche jeden Raum aufmerksam, merke dir wichtige Hinweise und l\u00f6se die R\u00e4tsel.", topleft=(box_x + 20, box_y + 470), fontsize=38, color="white")
         screen.draw.text("Achtung:", topleft=(box_x + 20, box_y + 525), bold=True, fontsize=38, color="white")
