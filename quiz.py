@@ -24,18 +24,18 @@ quizzes = {
             "Ihr Umfang beträgt jeweils 24cm",
             "Nichts der oberen angaben"
         ],
-        "correct": 1,
+        "correct": 4,
         "rätsel_type": "multiplechoice"
     },
     "room3_item4": {
-        "question": "1) 5. Buchstabe | 2) 1. Buchstabe | 3) 3. Buchstabe = ?",
+        "question": "a) 5. Buchstabe | b) 1. Buchstabe | c) 3. Buchstabe = ?",
         "correct": ["C", "P", "H"],
         "max_length": 1,
         "rätsel_type": "eingabe"
     },
     "room4_item1": {
-        "question": "Welche Elementkette ist im Raum versteckt?",
-        "correct": ["W", "Ca", "S", "B"],
+        "question": "Welche Elementkette ist im Raum versteckt? Die Antwort muss alphabetische geordnet sein!",
+        "correct": ["B", "Ca", "S", "W"],
         "max_length": 2,
         "rätsel_type": "eingabe"
     },

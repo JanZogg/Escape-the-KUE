@@ -147,13 +147,13 @@ def find_hotspot_at_point(point, room_index, hotspots, panorama_view, screen_wid
             return hotspot
     return None
 
-def draw_hotspot_overlay(screen, room_index, active_hotspot, show_hotspot_debug, hotspots, panorama_view):
+def draw_hotspot_overlay(screen, room_index, active_hotspot, hotspots, panorama_view, show_item_help=False):
     overlay = pygame.Surface((screen.surface.get_width(), screen.surface.get_height()), pygame.SRCALPHA) #SRCALPHA (Transparent)
     visible_hotspots = []
     for hotspot in hotspots:
         if hotspot.room_index != room_index:
             continue
-        if show_hotspot_debug or hotspot == active_hotspot:
+        if hotspot == active_hotspot or (show_item_help and hotspot.hotspot_type == "item"):
             visible_hotspots.append(hotspot)
 
     for hotspot in visible_hotspots:

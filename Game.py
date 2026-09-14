@@ -30,11 +30,11 @@ mouse_klick_pos = (0, 0)
 item_large_pos = None
 current_item_quiz = None
 hovered_hotspot = None
-show_hotspot_debug = False
 timer_duration = 60 * 60
 timer_start = None
 timer_paused = False
 timer_remaining = timer_duration
+scaled_transparent_image_cache = {}
 door_locked_text = False
 current_song = None
 mute = True
@@ -46,6 +46,8 @@ gameover_sound_playing = False
 mistake_sound_playing = False
 show_controls = True
 active_key_animation = None
+show_confirm = False
+highlighted_room = None
 
 # Einstellungen für die Schlüsselanimation.
 key_animation_hold_duration = 0.5
@@ -178,6 +180,9 @@ key_inventory = []
 #Actors
 room_actor = Actor(room[room_index])
 magnifier = Actor("magnifier")
+help_icon = Actor("lightbulb", (1868, 160))
+confirm_button = Actor("yes", (810, 690))
+reject_button = Actor("no", (1110, 690))
 speaker = Actor("speaker", (1864, 58))
 muted_speaker = Actor("speaker_mute", (1864, 58))
 start_button = Actor("start_button", (WIDTH / 2, 800))
@@ -764,8 +769,9 @@ def close_quiz_with_key_animation():
     return True
 
 def update():
-    global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index, door_locked_text
-    global hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing, gameover_sound_playing
+    global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index
+    global door_locked_text, hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing
+    global gameover_sound_playing, show_confirm, timer_remaining, highlighted_room
     # print(room_index)
 
     panorama_view.offset %= room_actor._surf.get_width() # ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
@@ -798,6 +804,24 @@ def update():
         if speaker.collidepoint(mouse_klick_pos):
             mute = not mute
             mouse_klick_pos = (0, 0)
+        if (not show_controls
+            and not Quiz.quiz_is_open()
+            and item_large_pos is None):
+            if help_icon.collidepoint(mouse_klick_pos) and not show_confirm:
+                show_confirm = True
+                mouse_klick_pos = (0, 0)
+            if show_confirm and confirm_button.collidepoint(mouse_klick_pos):
+                print("hello")
+                Quiz.deduction_text = True
+                clock.schedule_unique(Quiz.set_deduction_on_false, 1.5)
+                timer_remaining = max(0, timer_remaining - 120)
+                show_confirm = False
+                mouse_klick_pos = (0, 0)
+                highlighted_room = room_index
+            elif show_confirm and reject_button.collidepoint(mouse_klick_pos):
+                show_confirm = False
+                print("goodby")
+                mouse_klick_pos = (0, 0)
         if not Quiz.game_is_frozen:
             quiz_open = Quiz.quiz_is_open()
             if keyboard.A and move and not quiz_open:
@@ -927,6 +951,17 @@ def on_key_down(key):
         if keyboard.M:
             mute = not mute
 
+def draw_image(image_name, x, y, width, height, transparency=0):
+    transparency = max(0, min(100, transparency))
+    cache_key = (image_name, width, height, transparency)
+    if cache_key not in scaled_transparent_image_cache:
+        image = getattr(images, image_name) # Formel von ChatGPT die macht, dass man das Bild mit dem name image_name aussucht
+        image = pygame.transform.smoothscale(image, (width, height))
+        image.set_alpha(round(255 * (1 - transparency / 100)))
+        scaled_transparent_image_cache[cache_key] = image
+    screen.blit(scaled_transparent_image_cache[cache_key], (x, y))
+
+
 def standard_box(x, y, width, height):
     box = Rect(x, y, width, height)
     box_surface = pygame.Surface((width, height), pygame.SRCALPHA)
@@ -970,7 +1005,7 @@ def restart_game():
     global door_locked_text, move, speed, game_over, escape, current_song, gameover_sound_playing
     global mouse_move_pos, mouse_klick_pos, timer_start, timer_paused, timer_remaining, mute
     global show_controls, mistake_sound_playing, correct_sound_startet, winning_sound_playing
-    global active_key_animation
+    global active_key_animation, highlighted_room, show_confirm
 
     # Ausstehende Sound-Callbacks des alten Durchlaufs entfernen.
     clock.unschedule(set_volume_back)
@@ -1016,6 +1051,8 @@ def restart_game():
     winning_sound_playing = False
     gameover_sound_playing = False
     show_controls = True
+    highlighted_room = None
+    show_confirm = False
     active_key_animation = None
     key_inventory.clear()
 
@@ -1045,11 +1082,14 @@ def get_remaining_time():
 
 def draw_game():
     global current_song, mute, game_over, escape, mistake_sound_playing, show_controls, timer_remaining
-    global correct_sound_startet
+    global correct_sound_startet, room_index, show_confirm, mouse_klick_pos
 
     screen.clear()
     panorama_view.draw(screen)
-    draw_hotspot_overlay(screen, room_index, hovered_hotspot, show_hotspot_debug, hotspots, panorama_view)
+    draw_hotspot_overlay(
+        screen, room_index, hovered_hotspot, hotspots, panorama_view,
+        show_item_help=(highlighted_room == room_index)
+    )
     if not move and Quiz.opened_quiz is None:
         overlay()
         box_width = 1216
@@ -1092,6 +1132,22 @@ def draw_game():
         screen.draw.text("Falsche Antworten kosten Zeit!", topleft=(box_x + 165, box_y + 525), fontsize=38, color="white")
         x.draw()
 
+    #Nachfrage für Help
+    if show_confirm:
+        box_width = 600
+        box_height = 500
+        box_x = (WIDTH - box_width) // 2
+        box_y = (HEIGHT - box_height) // 2
+        standard_box(box_x, box_y, box_width, box_height)
+        screen.draw.text("Brauchst du Hilfe?", center=(box_x + box_width // 2, box_y + 40), bold=True, fontsize=64, color="white")
+        screen.draw.text("Klicke auf das H\u00e4ckchen um alle Objekte", center=(box_x + box_width // 2, box_y + 100), fontsize=36, color="white")
+        screen.draw.text("im diesem Raum anzuzeigen.", center=(box_x + box_width // 2, box_y + 130), fontsize=36, color="white")
+        screen.draw.text("Achtung!", center=(box_x + box_width // 2, box_y + 210), bold=True, fontsize=36, color="white")
+        screen.draw.text("Es werden dir aber 2 Minuten abgezogen!", center=(box_x + box_width // 2, box_y + 240), fontsize=36, color="white")
+        confirm_button.draw()
+        reject_button.draw()
+
+    #Abdunklung und Quiz zeichnen inkl. Kreuz zum schliesen
     if Quiz.opened_quiz is not None:
         overlay()
         Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, standard_box)
@@ -1100,7 +1156,7 @@ def draw_game():
 
     #Timer erstellt mit ChatGPT
     if Quiz.deduction:
-        timer_remaining = max(0, timer_remaining - 60)
+        timer_remaining = max(0, timer_remaining - 120)
         mistake_sound_playing = True
         sounds.part1.set_volume(0)
         sounds.part2.set_volume(0)
@@ -1109,7 +1165,7 @@ def draw_game():
         clock.schedule_unique(set_volume_back, 1)
         Quiz.deduction = False
     if Quiz.deduction_text:
-        screen.draw.text("-1 Minute", topleft=(16, 112), fontsize=48, color="red")
+        screen.draw.text("-2 Minuten", topleft=(16, 112), fontsize=48, color="red")
     if Quiz.correct_sound_playing and not correct_sound_startet:
         correct_sound_startet = True
         sounds.part1.set_volume(0)
@@ -1124,12 +1180,14 @@ def draw_game():
     minutes = (verbleibend % 3600) // 60
     seconds = verbleibend % 60
     timer_text = f"{hours:02}:{minutes:02}:{seconds:02}"
-    standard_box(16, 19, 440, 88)
-    screen.draw.text(timer_text, topleft=(32, 32), fontsize=64, color="white", fontname="clock")
+    draw_image("background_timer", 16, 19, 440, 88, transparency=25)
+    screen.draw.text(timer_text, topleft=(62, 36), fontsize=54, color="white", fontname="clock")
 
     if verbleibend == 0:
         game_over = True
         escape = False
+
+    screen.draw.text(f"Zimmer {room_index + 1} von 6", center=((WIDTH // 2), 33), fontsize=38, color="white")
 
     #Musik
     standard_box(1824, 19, 88, 80)
@@ -1161,6 +1219,10 @@ def draw_game():
         else:
             sounds.part3.play(-1)
         current_song = new_song
+
+    #Helpbutton
+    standard_box(1824, 120, 88, 80)
+    help_icon.draw()
 
     #Hotbar
     standard_box(16, 480, 88, 560)
