@@ -769,6 +769,13 @@ def close_quiz_with_key_animation():
     Quiz.close_quiz()
     return True
 
+def hover_button(button, normal_image, hover_image):
+    area = getattr(images, normal_image).get_rect(center=button.center) # Formel von Codex die macht, dass trotzvergrösserung des Bildes durch highlight, das normale Bild gilt
+    if area.collidepoint(mouse_move_pos):
+        button.image = hover_image
+    else:
+        button.image = normal_image
+
 def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index
     global door_locked_text, hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing
@@ -781,10 +788,12 @@ def update():
     update_key_animation()
 
     if not game_started:
+        hover_button(start_button, "start_button", "high_start_button")
         if start_button.collidepoint(mouse_klick_pos):
             play_click()
             game_started = True
     elif game_over:
+        hover_button(restart_button, "restart_button", "high_restart_button")
         if escape:
             pause_timer()
             if not winning_sound_playing:
@@ -803,6 +812,14 @@ def update():
                 sounds.part3.stop()
                 gameover_sound_playing = True
     else:
+        hover_button(x, "close_smth", "high_close_smth")
+        hover_button(reject_button, "no", "high_no")
+        hover_button(confirm_button, "yes", "high_yes")
+        hover_button(puzzle_button, "puzzle_button", "high_puzzle_button")
+        hover_button(Quiz.check_button, "check_button", "high_check_button")
+        hover_button(help_icon, "lightbulb", "high_lightbulb")
+        hover_button(speaker, "speaker", "high_speaker")
+        hover_button(muted_speaker, "speaker_mute", "high_speaker_mute")
         if speaker.collidepoint(mouse_klick_pos):
             play_click()
             mute = not mute

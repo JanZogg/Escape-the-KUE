@@ -232,6 +232,7 @@ def click_quiz(pos, width, height):
             return True
     if check_button.collidepoint(pos):
         check_input()
+        return True
 
 def game_freeze():
     global game_is_frozen
