@@ -229,7 +229,7 @@ def click_quiz(pos, width, height):
     for number, field in enumerate(input_field_rects(width, height)):
         if field.collidepoint(pos) and not correct_fields[opened_quiz][number]:
             active_input_field = number
-            return
+            return True
     if check_button.collidepoint(pos):
         check_input()
 
@@ -243,21 +243,22 @@ def set_deduction_on_false():
 
     deduction_text = False
 
-def draw_quiz(screen, width, height, standard_box):
+def draw_quiz(screen, width, height, draw_image):
     if opened_quiz is None:
         return
 
     question = quizzes[opened_quiz]
-    box_width = 1216
-    box_height = 576
+    box_width = 1368
+    box_height = 648
     box_x = (width - box_width) // 2
     box_y = (height - box_height) // 2
-    standard_box(box_x, box_y, box_width, box_height)
+    draw_image("background_quiz", box_x, box_y, box_width, box_height, transparency=15)
     screen.draw.text(
         question["question"],
-        midtop=(width / 2, box_y + 32),
+        midtop=(width / 2, box_y + 64),
         width=box_width - 160,
-        fontsize=48,
+        fontname="text_bold",
+        fontsize=40,
         lineheight=0.9,
         align="center",
         color="white"
@@ -271,7 +272,8 @@ def draw_quiz(screen, width, height, standard_box):
                 text,
                 topleft=(box_x + 90, y),
                 width=box_width - 224,
-                fontsize=40,
+                fontname="text_regular",
+                fontsize=32,
                 lineheight=0.85,
                 color="white"
             )
@@ -293,22 +295,24 @@ def draw_quiz(screen, width, height, standard_box):
             screen.draw.text(
                 input_answers[opened_quiz][number],
                 center=field.center,
-                fontsize=56,
+                fontname="text_regular",
+                fontsize=48,
                 color="white"
             )
             if number < len(fields) - 1: # nach jedem Feld ausser dem letzten kommt noch ein Bindestrich
-                screen.draw.text("-", center=(field.right + 30, field.centery), fontsize=56, color="white")
+                screen.draw.text("-", center=(field.right + 30, field.centery), fontsize=48, color="white", fontname="text_regular")
 
         screen.draw.text(
             "Tab oder Mausklick: Feld wechseln   |   Backspace: löschen",
-            center=(width / 2, box_y + 350),
-            fontsize=32,
+            center=(width / 2, box_y + 400),
+            fontname="text_regular",
+            fontsize=28,
             color="white"
         )
-        check_button.pos = (width / 2, box_y + 440)
+        check_button.pos = (width / 2, box_y + 520)
         check_button.draw()
     if message != "":
         if message == "Richtig":
-            screen.draw.text(message, center=(width / 2, box_y + box_height - 40), fontsize=45, color="green")
+            screen.draw.text(message, center=(width / 2, box_y + box_height - 50), fontsize=45, color="green", fontname="text_bold")
         else:
-            screen.draw.text(message, center=(width / 2, box_y + box_height - 40), fontsize=45, color="red")
+            screen.draw.text(message, center=(width / 2, box_y + box_height - 50), fontsize=45, color="red", fontname="text_bold")
