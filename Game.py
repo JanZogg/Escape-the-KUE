@@ -48,7 +48,8 @@ show_controls = True
 active_key_animation = None
 show_confirm = False
 highlighted_room = None
-sounds.click.set_volume(0.5)
+sounds.click.set_volume(0.4)
+help_tracker = 0
 
 # Einstellungen für die Schlüsselanimation.
 key_animation_hold_duration = 0.5
@@ -779,8 +780,7 @@ def hover_button(button, normal_image, hover_image):
 def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index
     global door_locked_text, hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing
-    global gameover_sound_playing, show_confirm, timer_remaining, highlighted_room
-    # print(room_index)
+    global gameover_sound_playing, show_confirm, timer_remaining, highlighted_room, help_tracker
 
     panorama_view.offset %= room_actor._surf.get_width() # ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
     hovered_hotspot = None
@@ -827,24 +827,27 @@ def update():
         if (not show_controls
             and not Quiz.quiz_is_open()
             and item_large_pos is None):
-            if help_icon.collidepoint(mouse_klick_pos) and not show_confirm:
+            if (help_icon.collidepoint(mouse_klick_pos) and not show_confirm
+                and highlighted_room != room_index):
                 play_click()
                 show_confirm = True
                 mouse_klick_pos = (0, 0)
-            if show_confirm and confirm_button.collidepoint(mouse_klick_pos):
+            if (show_confirm and confirm_button.collidepoint(mouse_klick_pos)
+                and highlighted_room != room_index):
                 play_click()
-                print("hello")
                 Quiz.deduction_text = True
                 clock.schedule_unique(Quiz.set_deduction_on_false, 1.5)
                 timer_remaining = max(0, timer_remaining - 120)
                 show_confirm = False
                 mouse_klick_pos = (0, 0)
                 highlighted_room = room_index
+                Quiz.game_is_frozen = False
+                help_tracker += 1
             elif show_confirm and reject_button.collidepoint(mouse_klick_pos):
                 play_click()
                 show_confirm = False
-                print("goodby")
                 mouse_klick_pos = (0, 0)
+                Quiz.game_is_frozen = False
         if not Quiz.game_is_frozen:
             quiz_open = Quiz.quiz_is_open()
             if keyboard.A and move and not quiz_open:
@@ -883,6 +886,7 @@ def update():
                             item_large_pos = None
                             current_item_quiz = None
                             if doors_room[room_index] == 99:
+                                pause_timer()
                                 game_over = True
                                 escape = True
                         else:
@@ -1024,7 +1028,7 @@ def restart_game():
     global door_locked_text, move, speed, game_over, escape, current_song, gameover_sound_playing
     global mouse_move_pos, mouse_klick_pos, timer_start, timer_paused, timer_remaining, mute
     global show_controls, mistake_sound_playing, correct_sound_startet, winning_sound_playing
-    global active_key_animation, highlighted_room, show_confirm
+    global active_key_animation, highlighted_room, show_confirm, help_tracker
 
     # Ausstehende Sound-Callbacks des alten Durchlaufs entfernen.
     clock.unschedule(set_volume_back)
@@ -1071,6 +1075,7 @@ def restart_game():
     gameover_sound_playing = False
     show_controls = True
     highlighted_room = None
+    help_tracker = 0
     show_confirm = False
     active_key_animation = None
     key_inventory.clear()
@@ -1152,6 +1157,23 @@ def draw_game():
         screen.draw.text("Falsche Antworten kosten Zeit!", topleft=(box_x + 225, box_y + 525), fontsize=30, color="white", fontname="text_regular")
         x.draw()
 
+    #Nachfrage für Help
+    if show_confirm:
+        overlay()
+        Quiz.game_is_frozen = True
+        box_width = 800
+        box_height = 500
+        box_x = (WIDTH - box_width) // 2
+        box_y = (HEIGHT - box_height) // 2
+        draw_image("background_confirm", box_x, box_y, box_width, box_height, transparency=15)
+        screen.draw.text("Brauchst du Hilfe?", center=(box_x + box_width // 2, box_y + 80), fontname="text_bold", fontsize=50, color="white")
+        screen.draw.text("Klicke auf das H\u00e4ckchen um alle Objekte", center=(box_x + box_width // 2, box_y + 140), fontsize=28, color="white", fontname="text_regular")
+        screen.draw.text("im diesem Raum anzuzeigen.", center=(box_x + box_width // 2, box_y + 170), fontsize=28, color="white", fontname="text_regular")
+        screen.draw.text("Achtung!", center=(box_x + box_width // 2, box_y + 250), fontname="text_bold", fontsize=28, color="white")
+        screen.draw.text("Es werden dir aber 2 Minuten abgezogen!", center=(box_x + box_width // 2, box_y + 280), fontsize=28, color="white", fontname="text_regular")
+        confirm_button.draw()
+        reject_button.draw()
+
     #Abdunklung und Quiz zeichnen inkl. Kreuz zum schliesen
     if Quiz.opened_quiz is not None:
         overlay()
@@ -1170,7 +1192,7 @@ def draw_game():
         clock.schedule_unique(set_volume_back, 1)
         Quiz.deduction = False
     if Quiz.deduction_text:
-        screen.draw.text("-2 Minuten", topleft=(16, 112), fontsize=48, color="red", fontname="text_bold")
+        screen.draw.text("-2 Minuten", center=(229.5, 140), fontsize=40, color="red", fontname="text_bold")
     if Quiz.correct_sound_playing and not correct_sound_startet:
         correct_sound_startet = True
         sounds.part1.set_volume(0)
@@ -1231,21 +1253,6 @@ def draw_game():
     draw_image("background_help", 1706, 19, 88, 88, transparency=15)
     help_icon.draw()
 
-    #Nachfrage für Help
-    if show_confirm:
-        box_width = 800
-        box_height = 500
-        box_x = (WIDTH - box_width) // 2
-        box_y = (HEIGHT - box_height) // 2
-        draw_image("background_confirm", box_x, box_y, box_width, box_height, transparency=15)
-        screen.draw.text("Brauchst du Hilfe?", center=(box_x + box_width // 2, box_y + 80), fontname="text_bold", fontsize=50, color="white")
-        screen.draw.text("Klicke auf das H\u00e4ckchen um alle Objekte", center=(box_x + box_width // 2, box_y + 140), fontsize=28, color="white", fontname="text_regular")
-        screen.draw.text("im diesem Raum anzuzeigen.", center=(box_x + box_width // 2, box_y + 170), fontsize=28, color="white", fontname="text_regular")
-        screen.draw.text("Achtung!", center=(box_x + box_width // 2, box_y + 250), fontname="text_bold", fontsize=28, color="white")
-        screen.draw.text("Es werden dir aber 2 Minuten abgezogen!", center=(box_x + box_width // 2, box_y + 280), fontsize=28, color="white", fontname="text_regular")
-        confirm_button.draw()
-        reject_button.draw()
-
     #Hotbar
     draw_image("background_hotbar", 19, 501, 88, 560, transparency=5)
     draw_key_inventory()
@@ -1262,12 +1269,14 @@ def draw():
             hours = verbleibend // 3600
             minutes = (verbleibend % 3600) // 60
             seconds = verbleibend % 60
-            timer_text = f"{hours:02}:{minutes:02}:{seconds:02}"
-            screen.draw.text("Verbleibende Zeit", center=(WIDTH / 2, 752), fontsize=46, color="white", fontname="text_regular")
-            screen.draw.text(timer_text, center=(WIDTH / 2, 824), fontsize=80, color="white", fontname="clock")
+            remaining_time_text = f"{hours:02}:{minutes:02}:{seconds:02}"
+            result_text = (f"Verbleibende Zeit: {remaining_time_text} | Fehler: {Quiz.mistake_tracker} | Hilfen: {help_tracker}")
+            screen.draw.text(result_text, center=(WIDTH / 2, 790), fontsize=36, color="white", fontname="text_regular")
         else:
             imprissond.draw()
             restart_button.draw()
+            result_text = (f"Gel\u00f6ste R\u00e4ume: {room_index}/6 | Fehler: {Quiz.mistake_tracker} | Hilfen: {help_tracker}")
+            screen.draw.text(result_text, center=(WIDTH / 2, 790), fontsize=36, color="white", fontname="text_regular")
     else:
         draw_game()
     draw_key_animation()

@@ -69,10 +69,11 @@ solved_quizzes = []
 input_answers = {} # [""],[""],[""]
 correct_fields = {} # [False],[False],[False]
 active_input_field = 0
+mistake_tracker = 0
 
 def reset_quiz_state():
     global opened_quiz, game_is_frozen, deduction, deduction_text, correct_sound_playing, message
-    global active_input_field
+    global active_input_field, mistake_tracker
 
     # Alte Quiz-Callbacks dürfen keinen neuen Spieldurchlauf verändern.
     clock.unschedule(close_quiz)
@@ -89,6 +90,7 @@ def reset_quiz_state():
     input_answers.clear()
     correct_fields.clear()
     active_input_field = 0
+    mistake_tracker = 0
 
 def open_quiz(quiz_name):
     global opened_quiz, message
@@ -190,7 +192,7 @@ def check_input():
     check_answer(all(confirmed))
 
 def check_answer(is_correct):
-    global message, deduction, deduction_text, correct_sound_playing
+    global message, deduction, deduction_text, correct_sound_playing, mistake_tracker
 
     if is_correct:
         message = "Richtig"
@@ -198,6 +200,7 @@ def check_answer(is_correct):
         if opened_quiz not in solved_quizzes:
             solved_quizzes.append(opened_quiz)
     else:
+        mistake_tracker += 1
         message = "Falsch, versuche es nochmals"
         deduction = True
         deduction_text = True
@@ -310,10 +313,10 @@ def draw_quiz(screen, width, height, draw_image):
             fontsize=28,
             color="white"
         )
-        check_button.pos = (width / 2, box_y + 520)
+        check_button.pos = (width / 2, box_y + 490)
         check_button.draw()
     if message != "":
         if message == "Richtig":
-            screen.draw.text(message, center=(width / 2, box_y + box_height - 50), fontsize=45, color="green", fontname="text_bold")
+            screen.draw.text(message, center=(width / 2, box_y + box_height - 70), fontsize=45, color="green", fontname="text_bold")
         else:
-            screen.draw.text(message, center=(width / 2, box_y + box_height - 50), fontsize=45, color="red", fontname="text_bold")
+            screen.draw.text(message, center=(width / 2, box_y + box_height - 70), fontsize=45, color="red", fontname="text_bold")
