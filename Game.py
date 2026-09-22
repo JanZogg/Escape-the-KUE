@@ -50,6 +50,9 @@ show_confirm = False
 highlighted_room = None
 sounds.click.set_volume(0.4)
 help_tracker = 0
+fps_start = time.perf_counter()
+fps_frames = 0
+fps_value = 0
 
 # Einstellungen für die Schlüsselanimation.
 key_animation_hold_duration = 0.5
@@ -69,7 +72,6 @@ room = [
     "room6", #Latein
     "escaped"
     ]
-
 room_start_center_x = [
     270,  #Raum 1: Deutsch
     280,  #Raum 2: Mathematik
@@ -78,7 +80,6 @@ room_start_center_x = [
     0,    #Raum 5: Biologie
     260   #Raum 6: Latein
     ]
-
 doors_room = [
     0, #Türe im Raum 0
     1, #Türe im Raum 1
@@ -1104,6 +1105,27 @@ def get_remaining_time():
 
     return int(verbleibend)
 
+def draw_fps():
+    global fps_start, fps_frames, fps_value
+
+    now = time.perf_counter()
+    fps_frames += 1
+    elapsed = now - fps_start
+
+    # Durchschnitt alle 0.5 Sekunden aktualisieren
+    if elapsed >= 0.5:
+        fps_value = fps_frames / elapsed
+        fps_frames = 0
+        fps_start = now
+
+    screen.draw.text(
+        f"{fps_value:.0f} FPS",
+        bottomright=(WIDTH - 20, HEIGHT - 20),
+        fontsize=30,
+        color="yellow",
+        background="black"
+    )
+
 def draw_game():
     global current_song, mute, game_over, escape, mistake_sound_playing, show_controls, timer_remaining
     global correct_sound_startet, room_index, show_confirm, mouse_klick_pos
@@ -1281,3 +1303,4 @@ def draw():
         draw_game()
     draw_key_animation()
     magnifier.draw()
+    draw_fps()

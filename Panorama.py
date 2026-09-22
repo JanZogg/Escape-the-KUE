@@ -19,9 +19,12 @@ class PanoramaView:
         self.offset = 0
         self.slice_width = slice_width
         self.focal_length = focal_length
+        self.cached_image = None
+        self.cached_offset = None
 
     def set_room_image(self, image_name):
         self.room_actor.image = image_name
+        self.cached_image = None
 
     def move_left(self):
         self.offset -= self.speed
@@ -30,7 +33,11 @@ class PanoramaView:
         self.offset += self.speed
 
     def draw(self, screen):
-        self.draw_cylindrical(screen)
+        if self.cached_image is None or self.offset != self.cached_offset:
+            self.cached_image = self.draw_cylindrical(screen)
+            self.cached_offset = self.offset
+
+        screen.surface.blit(self.cached_image, (0, 0))
 
     def draw_cylindrical(self, screen):
         panorama_surface = self.room_actor._surf
@@ -38,6 +45,8 @@ class PanoramaView:
         panorama_width = panorama_surface.get_width()
         panorama_height = panorama_surface.get_height()
         screen_center_x = screen_width / 2
+
+        result = pygame.Surface((screen_width, panorama_height)).convert()
 
         # Schleife geht in slice_width Schritte von links (0) nach rechts (screen_width)
         # screen_x ist die linke Position eines Schnippsels
@@ -72,8 +81,9 @@ class PanoramaView:
                 second_source_slice = panorama_surface.subsurface((0, 0, remaining_source_width, panorama_height))
                 source_slice.blit(second_source_slice, (source_width, 0))
 
-            # Schnippsel an der richtigen Stelle zeichenen
-            screen.surface.blit(source_slice, (screen_x, 0))
+            result.blit(source_slice, (screen_x, 0))
+
+        return result
 
     # Für Hotspots muss Panorama.x in Bildschirm.x umgerechnet werden§
     def world_x_to_screen_x(self, world_x, screen_width):
@@ -148,7 +158,11 @@ def find_hotspot_at_point(point, room_index, hotspots, panorama_view, screen_wid
     return None
 
 def draw_hotspot_overlay(screen, room_index, active_hotspot, hotspots, panorama_view, show_item_help=False):
-    overlay = pygame.Surface((screen.surface.get_width(), screen.surface.get_height()), pygame.SRCALPHA) #SRCALPHA (Transparent)
+    overlay = pygame.Surface(
+        (screen.surface.get_width(), screen.surface.get_height()),
+        pygame.SRCALPHA
+    )
+
     visible_hotspots = []
     for hotspot in hotspots:
         if hotspot.room_index != room_index:
@@ -158,8 +172,16 @@ def draw_hotspot_overlay(screen, room_index, active_hotspot, hotspots, panorama_
 
     for hotspot in visible_hotspots:
         polygon = project_hotspot(hotspot, screen.surface.get_width(), panorama_view)
-        drawable_polygon = [(int(point_x), int(point_y)) for point_x, point_y in polygon]
-        pygame.draw.polygon(overlay, HOTSPOT_FILL_COLOR, drawable_polygon)
-        pygame.draw.polygon(overlay, HOTSPOT_BORDER_COLOR, drawable_polygon, HOTSPOT_BORDER_WIDTH)
+        drawable_polygon = [
+            (int(point_x), int(point_y))
+            for point_x, point_y in polygon
+        ]
+        pygame.draw.polygon(
+            overlay, HOTSPOT_FILL_COLOR, drawable_polygon
+        )
+        pygame.draw.polygon(
+            overlay, HOTSPOT_BORDER_COLOR,
+            drawable_polygon, HOTSPOT_BORDER_WIDTH
+        )
 
     screen.surface.blit(overlay, (0, 0))
