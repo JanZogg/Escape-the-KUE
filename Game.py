@@ -50,9 +50,8 @@ show_confirm = False
 highlighted_room = None
 sounds.click.set_volume(0.4)
 help_tracker = 0
-fps_start = time.perf_counter()
-fps_frames = 0
-fps_value = 0
+intro_index = 0
+intro_playing = True
 
 # Einstellungen für die Schlüsselanimation.
 key_animation_hold_duration = 0.5
@@ -179,6 +178,13 @@ key_animation_config = {
     "room6_item1": ("room6_key1", (34, 944))
     }
 key_inventory = []
+intro_images = [
+    "intro_black",
+    "intro_message",
+    "intro_reply",
+    "intro_battery",
+    "intro_end"
+]
 
 #Actors
 room_actor = Actor(room[room_index])
@@ -194,6 +200,8 @@ restart_button = Actor("restart_button", (WIDTH / 2, 960))
 escaped = Actor("escaped", (WIDTH / 2, HEIGHT / 2))
 imprissond = Actor("gameover", (WIDTH / 2, HEIGHT / 2))
 x = Actor("close_smth", (1565, 300))
+next_button = Actor("next", (1750, 61))
+skip_button = Actor("skip", (1857, 61))
 panorama_view = PanoramaView(
     room_actor,
     speed,
@@ -782,6 +790,7 @@ def update():
     global game_started, item_large_pos, current_item_quiz, move, mouse_klick_pos, mouse_move_pos, speed, room_index
     global door_locked_text, hovered_hotspot, mute, escape, game_over, show_controls, timer_start, winning_sound_playing
     global gameover_sound_playing, show_confirm, timer_remaining, highlighted_room, help_tracker
+    global intro_index, intro_playing
 
     panorama_view.offset %= room_actor._surf.get_width() # ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
     hovered_hotspot = None
@@ -793,6 +802,7 @@ def update():
         if start_button.collidepoint(mouse_klick_pos):
             play_click()
             game_started = True
+            clock.schedule_unique(play_message_received, 0.5)
     elif game_over:
         hover_button(restart_button, "restart_button", "high_restart_button")
         if escape:
@@ -812,6 +822,19 @@ def update():
                 sounds.part2.stop()
                 sounds.part3.stop()
                 gameover_sound_playing = True
+    elif intro_playing:
+        hover_button(next_button, "next", "high_next")
+        hover_button(skip_button, "skip", "high_skip")
+        if skip_button.collidepoint(mouse_klick_pos):
+            play_click()
+            mouse_klick_pos = (0, 0)
+            intro_playing = False
+        elif next_button.collidepoint(mouse_klick_pos):
+            intro_index += 1
+            play_click()
+            mouse_klick_pos = (0, 0)
+            if intro_index >= len(intro_images):
+                intro_playing = False
     else:
         hover_button(x, "close_smth", "high_close_smth")
         hover_button(reject_button, "no", "high_no")
@@ -929,6 +952,10 @@ def on_mouse_move(pos):
 def on_mouse_down(pos):
     global mouse_klick_pos, item_large_pos, current_item_quiz
 
+    if game_started and intro_playing:
+        mouse_klick_pos = pos
+        return
+
     if game_over and restart_button.collidepoint(pos):
         restart_game()
         play_click()
@@ -977,7 +1004,8 @@ def on_key_down(key):
         return
     if not game_started and keyboard.s:
         game_started = True
-    if game_started:
+        clock.schedule_unique(play_message_received, 0.5)
+    if game_started and not intro_playing:
         if keyboard.P:
             room_index = room_index + 1
             set_room_with_start_view(room_index)
@@ -1003,6 +1031,10 @@ def overlay():
 
 def play_click():
     sounds.click.play(0)
+
+def play_message_received():
+    if game_started and intro_playing and intro_index == 0:
+        sounds.message_received.play(0)
 
 def set_volume_back():
     global mistake_sound_playing
@@ -1030,10 +1062,12 @@ def restart_game():
     global mouse_move_pos, mouse_klick_pos, timer_start, timer_paused, timer_remaining, mute
     global show_controls, mistake_sound_playing, correct_sound_startet, winning_sound_playing
     global active_key_animation, highlighted_room, show_confirm, help_tracker
+    global intro_index, intro_playing
 
     # Ausstehende Sound-Callbacks des alten Durchlaufs entfernen.
     clock.unschedule(set_volume_back)
     clock.unschedule(stop_correct_sound)
+    clock.unschedule(play_message_received)
 
     sounds.winning.stop()
     sounds.gameover.stop()
@@ -1085,6 +1119,9 @@ def restart_game():
     timer_paused = False
     timer_remaining = timer_duration
 
+    intro_index = 0
+    intro_playing = True
+
     Quiz.reset_quiz_state()
 
 def pause_timer():
@@ -1104,27 +1141,6 @@ def get_remaining_time():
         verbleibend = max(0, timer_remaining - vergangen)
 
     return int(verbleibend)
-
-def draw_fps():
-    global fps_start, fps_frames, fps_value
-
-    now = time.perf_counter()
-    fps_frames += 1
-    elapsed = now - fps_start
-
-    # Durchschnitt alle 0.5 Sekunden aktualisieren
-    if elapsed >= 0.5:
-        fps_value = fps_frames / elapsed
-        fps_frames = 0
-        fps_start = now
-
-    screen.draw.text(
-        f"{fps_value:.0f} FPS",
-        bottomright=(WIDTH - 20, HEIGHT - 20),
-        fontsize=30,
-        color="yellow",
-        background="black"
-    )
 
 def draw_game():
     global current_song, mute, game_over, escape, mistake_sound_playing, show_controls, timer_remaining
@@ -1283,6 +1299,12 @@ def draw():
     if not game_started:
         screen.blit("start", (0, 0))
         start_button.draw()
+    elif intro_playing:
+        screen.blit(intro_images[intro_index], (0, 0))
+        draw_image("background_next", 1706, 19, 88, 88, transparency=15)
+        draw_image("background_skip", 1813, 19, 88, 88, transparency=15)
+        next_button.draw()
+        skip_button.draw()
     elif game_over:
         if escape:
             escaped.draw()
@@ -1303,4 +1325,3 @@ def draw():
         draw_game()
     draw_key_animation()
     magnifier.draw()
-    draw_fps()
