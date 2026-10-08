@@ -1,0 +1,34 @@
+Escape the KUE – Mac-Version
+
+STARTEN
+1. Die ZIP-Datei per Doppelklick entpacken.
+2. Den entpackten Ordner öffnen.
+3. Escape-the-KUE.app öffnen.
+
+Python, Pygame und Pygame Zero sind bereits enthalten.
+
+UNTERSTÜTZTE MACS
+Diese Version ist für Macs mit Apple-Chip (M1 oder neuer).
+Intel-Macs werden nicht unterstützt.
+Den Chip findest du unter Apple-Menü > Über diesen Mac.
+Die App wird auf macOS 14 erstellt und automatisch geprüft.
+Ältere macOS-Versionen sind ungetestet.
+
+ERSTES ÖFFNEN
+Diese Testversion ist nicht von Apple notarisiert und besitzt keine
+Apple-Entwicklersignatur. macOS kann sie deshalb zunächst blockieren.
+Wenn du die Version von der offiziellen Projektseite heruntergeladen hast
+und ihr vertraust: Nach dem Öffnungsversuch kannst du unter
+Systemeinstellungen > Datenschutz & Sicherheit > Dennoch öffnen
+die App bestätigen. Bei einem verwalteten Schul-Mac kann dies gesperrt sein.
+Apple-Anleitung: https://support.apple.com/de-ch/102445
+
+STEUERUNG
+Maus und Linksklick: Gegenstände und Hinweise untersuchen.
+A / D: Nach links / rechts schauen.
+1 bis 4: Antwort bei Auswahlrätseln wählen.
+Tab: Eingabefeld wechseln. Rückschritttaste: Eingabe löschen.
+M: Musik stummschalten.
+Cmd + Q: Spiel beenden.
+
+Projekt: https://github.com/JanZogg/Escape-the-KUE

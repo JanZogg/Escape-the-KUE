@@ -1,0 +1,44 @@
+name: Mac-Spiel erstellen
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '*.py'
+      - '*.spec'
+      - 'requirements-build.txt'
+      - 'PLAY-MAC.txt'
+      - 'images/**'
+      - 'sounds/**'
+      - 'fonts/**'
+      - '.github/workflows/build-macos.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: Mac mit Apple-Chip
+    runs-on: macos-14
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          architecture: arm64
+      - name: Build-Pakete installieren
+        run: python -m pip install -r requirements-build.txt
+      - name: Mac-App erstellen und ZIP prüfen
+        env:
+          GAME_SOURCE_COMMIT: ${{ github.event.pull_request.base.sha || github.sha }}
+        run: python build_macos.py --expected-arch arm64 --source-commit "$GAME_SOURCE_COMMIT"
+      - name: Mac-Download speichern
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/macos/*.zip
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
