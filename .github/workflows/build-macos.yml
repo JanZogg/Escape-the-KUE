@@ -1,0 +1,58 @@
+name: Mac-Spiel erstellen
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '*.py'
+      - '*.spec'
+      - 'requirements-build.txt'
+      - 'PLAY-MAC.txt'
+      - 'images/**'
+      - 'sounds/**'
+      - 'fonts/**'
+      - '.github/workflows/build-macos.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: Mac ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Apple-Silicon
+            runner: macos-14
+            arch: arm64
+            python_arch: arm64
+          - label: Intel
+            runner: macos-15-intel
+            arch: x86_64
+            python_arch: x64
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          architecture: ${{ matrix.python_arch }}
+      - name: Build-Pakete installieren
+        run: python -m pip install -r requirements-build.txt
+      - name: Mac-App erstellen und ZIP prüfen
+        run: python build_macos.py --expected-arch ${{ matrix.arch }}
+      - name: Mac-Download speichern
+        uses: actions/upload-artifact@v7
+        with:
+          name: Escape-the-KUE-macOS-${{ matrix.label }}
+          path: |
+            dist/macos/*.zip
+            dist/macos/*.zip.sha256
+            dist/macos/self-test.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30

@@ -6,7 +6,7 @@ from pgzero import clock
 import pgzero.game
 import pygame
 import time
-import Quiz
+import quiz as Quiz
 from Panorama import PanoramaView, find_hotspot_at_point, draw_hotspot_overlay
 from Hotspot import create_hotspots
 
