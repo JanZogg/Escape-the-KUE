@@ -604,11 +604,6 @@ def on_key_down(key):
             Quiz.press_key(quiz_taste)
         return
     if game_started and not intro_playing:
-        if keyboard.P:
-            room_index = room_index + 1
-            set_room_with_start_view(room_index)
-            item_large_pos = None
-            current_item_quiz = None
         if keyboard.M:
             mute = not mute
 
