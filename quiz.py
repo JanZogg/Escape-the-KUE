@@ -130,7 +130,7 @@ def press_key(key):
     if question["rätsel_type"] == "eingabe":
         answers = input_answers[opened_quiz]
         confirmed = correct_fields[opened_quiz]
-        if key == "tab": # Codex verwendet für tab Funktion
+        if key == "tab": # KI verwendet für tab Funktion
             # Bereits richtige Felder werden beim Wechsel übersprungen.
             for step in range(1, len(answers) + 1):
                 next_field = (active_input_field + step) % len(answers)
@@ -138,12 +138,12 @@ def press_key(key):
                     active_input_field = next_field
                     break
         elif not confirmed[active_input_field]:
-            if key == "backspace": # Codex verwendet für backspace Funktion
+            if key == "backspace": # KI verwendet für backspace Funktion
                 answers[active_input_field] = answers[active_input_field][:-1]
                 message = ""
-            elif len(key) == 1 and key.isalpha(): # isalpha() von ChatGPT und prüft ob es ein Buchstabe ist
+            elif len(key) == 1 and key.isalpha(): # isalpha() von KI und prüft ob es ein Buchstabe ist
                 if len(answers[active_input_field]) < question["max_length"]:
-                    answers[active_input_field] += key.upper() # .upper() von ChatGPT und macht, dass angehängte Buchstabe gross ist
+                    answers[active_input_field] += key.upper() # .upper() von KI und macht, dass angehängte Buchstabe gross ist
                     message = ""
         return
 
@@ -155,7 +155,7 @@ def press_key(key):
 
     check_answer(chosen_answer == question["correct"])
 
-def select_first_unsolved_field(): # Codex verwendet für Auswahl des ersten Feldes welches noch nicht gelöst wurde
+def select_first_unsolved_field(): # KI verwendet für Auswahl des ersten Feldes welches noch nicht gelöst wurde
     global active_input_field
 
     active_input_field = 0
@@ -206,11 +206,11 @@ def check_answer(is_correct):
         deduction_text = True
         game_freeze()
         if quizzes[opened_quiz]["rätsel_type"] == "multiplechoice":
-            clock.schedule_unique(close_quiz, 1.5) # Formel von ChatGPT
+            clock.schedule_unique(close_quiz, 1.5) # Formel von KI
         clock.schedule_unique(game_freeze, 1.5)
         clock.schedule_unique(set_deduction_on_false, 1.5)
 
-def input_field_rects(width, height): # Mit hilfe von Codex erstellt
+def input_field_rects(width, height): # Mit hilfe von KI erstellt
     # Drei oder vier Felder werden mit den gleichen Abständen zentriert.
     field_count = len(quizzes[opened_quiz]["correct"])
     field_width = 160

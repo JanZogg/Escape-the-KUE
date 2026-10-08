@@ -10,7 +10,7 @@ import Quiz
 from Panorama import PanoramaView, find_hotspot_at_point, draw_hotspot_overlay
 from Hotspot import create_hotspots
 
-#ChatGPT
+# KI
 pgzero.game.DISPLAY_FLAGS = pygame.FULLSCREEN | pygame.SCALED
 pygame.mouse.set_visible(False)
 
@@ -266,7 +266,7 @@ def puzzle_button_is_visible():
 def get_key_hotbar_size(key_image):
     image_width, image_height = key_image.get_size() # Ursprünglihce Bildgrösse
     max_width, max_height = key_hotbar_max_size
-    scale = min(max_width / image_width, max_height / image_height) # Berechnet den kleineren Verkleinerungsfaktor, ChatGPT
+    scale = min(max_width / image_width, max_height / image_height) # Berechnet den kleineren Verkleinerungsfaktor, KI
     return (
         max(1, round(image_width * scale)),
         max(1, round(image_height * scale))
@@ -299,7 +299,7 @@ def start_key_animation(key_image, target_pos):
     }
     return True
 
-def update_key_animation(): # Codex
+def update_key_animation(): # KI
     global active_key_animation
 
     if active_key_animation is None:
@@ -379,7 +379,7 @@ def close_quiz_with_key_animation():
     return True
 
 def hover_button(button, normal_image, hover_image):
-    area = getattr(images, normal_image).get_rect(center=button.center) # Formel von Codex die macht, dass trotzvergrösserung des Bildes durch highlight, das normale Bild gilt
+    area = getattr(images, normal_image).get_rect(center=button.center) # Formel von KI die macht, dass trotzvergrösserung des Bildes durch highlight, das normale Bild gilt
     if area.collidepoint(mouse_move_pos):
         button.image = hover_image
     else:
@@ -391,7 +391,7 @@ def update():
     global gameover_sound_playing, show_confirm, timer_remaining, highlighted_room, help_tracker
     global intro_index, intro_playing
 
-    panorama_view.offset %= room_actor._surf.get_width() # ChatGPT hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
+    panorama_view.offset %= room_actor._surf.get_width() # KI hat mir die Formel %= gegebenl, _surf formel von PyGame Zero
     hovered_hotspot = None
     magnifier.pos = (mouse_move_pos[0] + 5, mouse_move_pos[1] + 15)
     update_key_animation()
@@ -603,9 +603,6 @@ def on_key_down(key):
         if quiz_taste is not None:
             Quiz.press_key(quiz_taste)
         return
-    if not game_started and keyboard.s:
-        game_started = True
-        clock.schedule_unique(play_message_received, 0.5)
     if game_started and not intro_playing:
         if keyboard.P:
             room_index = room_index + 1
@@ -619,7 +616,7 @@ def draw_image(image_name, x, y, width, height, transparency=0):
     transparency = max(0, min(100, transparency))
     cache_key = (image_name, width, height, transparency)
     if cache_key not in scaled_transparent_image_cache:
-        image = getattr(images, image_name) # Formel von ChatGPT die macht, dass man das Bild mit dem name image_name aussucht
+        image = getattr(images, image_name) # Formel von KI die macht, dass man das Bild mit dem name image_name aussucht
         image = pygame.transform.smoothscale(image, (width, height))
         image.set_alpha(round(255 * (1 - transparency / 100)))
         scaled_transparent_image_cache[cache_key] = image
@@ -822,7 +819,7 @@ def draw_game():
         if Quiz.quiz_is_open():
             x.draw()
 
-    #Timer erstellt mit ChatGPT
+    #Timer
     if Quiz.deduction:
         timer_remaining = max(0, timer_remaining - 120)
         mistake_sound_playing = True
@@ -843,6 +840,7 @@ def draw_game():
         sounds.correct_answer.play()
         clock.schedule_unique(stop_correct_sound, 1)
 
+    #KI
     verbleibend = get_remaining_time()
     hours = verbleibend // 3600
     minutes = (verbleibend % 3600) // 60

@@ -61,7 +61,7 @@ class PanoramaView:
             distance_from_center = slice_center_x - screen_center_x
 
             # Berechnung der Blickwinkels für eine zylinderische Projektion
-            # Formel von ChatGPT
+            # Formel von KI
             view_angle = math.atan(distance_from_center / self.focal_length)
 
             # Blickwinkel wieder in "Panorama-Distanz" umrechenen
@@ -96,7 +96,7 @@ class PanoramaView:
         wrapped_distance = (world_x - view_center_x + panorama_width / 2) % panorama_width
         wrapped_distance -= panorama_width / 2
 
-        # Formel von ChatGPT
+        # Formel von KI
         view_angle = wrapped_distance / self.focal_length
         distance_from_center = math.tan(view_angle) * self.focal_length
         return distance_from_center + screen_center_x # Absolute Position
@@ -127,7 +127,7 @@ def point_in_polygon(point, polygon):
     inside = False
     previous_x, previous_y = polygon[-1]
 
-    # Sogenanntes Ray-Casting-Verfahren (Idee von ChatGPT)
+    # Sogenanntes Ray-Casting-Verfahren (Idee von KI)
     # Wenn vom Mauspunkt eine Linie nach rechts gezogen wird und diese
     # gerade Anzahl Kollisionen mit Polygonlinien hat: ausserhalb
     # ungerade Anzahl Kollisionen Polygonlinien hat: innerhalb
