@@ -192,11 +192,12 @@ intro_images = [
 #Actors
 room_actor = Actor(room[room_index])
 magnifier = Actor("magnifier")
-help_icon = Actor("lightbulb", (1750, 61))
+help_icon = Actor("lightbulb", (1643, 61))
+exit_icon = Actor("exit_game", (1857, 63))
 confirm_button = Actor("yes", (810, 690))
 reject_button = Actor("no", (1110, 690))
-speaker = Actor("speaker", (1857, 61))
-muted_speaker = Actor("speaker_mute", (1857, 61))
+speaker = Actor("speaker", (1750, 61))
+muted_speaker = Actor("speaker_mute", (1750, 61))
 start_button = Actor("start_button", (WIDTH / 2, 800))
 puzzle_button = Actor("puzzle_button", (WIDTH / 2, 944))
 restart_button = Actor("restart_button", (WIDTH / 2, 960))
@@ -378,6 +379,23 @@ def close_quiz_with_key_animation():
     Quiz.close_quiz()
     return True
 
+def close_open_window():
+    global show_controls, timer_start, item_large_pos, current_item_quiz
+
+    if Quiz.quiz_is_open():
+        close_quiz_with_key_animation()
+    elif show_controls:
+        show_controls = False
+        Quiz.game_is_frozen = False
+        timer_start = time.time()
+    elif item_large_pos is not None:
+        item_large_pos = None
+        current_item_quiz = None
+    else:
+        return
+    play_click()
+
+
 def hover_button(button, normal_image, hover_image):
     area = getattr(images, normal_image).get_rect(center=button.center) # Formel von KI die macht, dass trotzvergrösserung des Bildes durch highlight, das normale Bild gilt
     if area.collidepoint(mouse_move_pos):
@@ -443,9 +461,10 @@ def update():
         hover_button(puzzle_button, "puzzle_button", "high_puzzle_button")
         hover_button(Quiz.check_button, "check_button", "high_check_button")
         hover_button(help_icon, "lightbulb", "high_lightbulb")
+        hover_button(exit_icon, "exit_game", "high_exit_game")
         hover_button(speaker, "speaker", "high_speaker")
         hover_button(muted_speaker, "speaker_mute", "high_speaker_mute")
-        if speaker.collidepoint(mouse_klick_pos):
+        if not show_confirm and speaker.collidepoint(mouse_klick_pos):
             play_click()
             mute = not mute
             mouse_klick_pos = (0, 0)
@@ -455,25 +474,29 @@ def update():
             if (help_icon.collidepoint(mouse_klick_pos) and not show_confirm
                 and highlighted_room != room_index):
                 play_click()
-                show_confirm = True
+                show_confirm = "help"
                 mouse_klick_pos = (0, 0)
-            if (show_confirm and confirm_button.collidepoint(mouse_klick_pos)
-                and highlighted_room != room_index):
+        if show_confirm:
+            if confirm_button.collidepoint(mouse_klick_pos):
                 play_click()
-                Quiz.deduction_text = True
-                clock.schedule_unique(Quiz.set_deduction_on_false, 1.5)
-                timer_remaining = max(0, timer_remaining - 120)
+                if show_confirm == "exit":
+                    pygame.event.post(pygame.event.Event(pygame.QUIT))
+                else:
+                    Quiz.deduction_text = True
+                    clock.schedule_unique(Quiz.set_deduction_on_false, 1.5)
+                    timer_remaining = max(0, timer_remaining - 120)
+                    highlighted_room = room_index
+                    Quiz.game_is_frozen = False
+                    help_tracker += 1
                 show_confirm = False
                 mouse_klick_pos = (0, 0)
-                highlighted_room = room_index
-                Quiz.game_is_frozen = False
-                help_tracker += 1
-            elif show_confirm and reject_button.collidepoint(mouse_klick_pos):
+            elif reject_button.collidepoint(mouse_klick_pos):
                 play_click()
+                if show_confirm == "help":
+                    Quiz.game_is_frozen = False
                 show_confirm = False
                 mouse_klick_pos = (0, 0)
-                Quiz.game_is_frozen = False
-        if not Quiz.game_is_frozen:
+        if not Quiz.game_is_frozen and not show_confirm:
             quiz_open = Quiz.quiz_is_open()
             if keyboard.A and move and not quiz_open:
                 speed = speed * 1.005
@@ -527,15 +550,8 @@ def update():
                             item_large_pos = i
                             current_item_quiz = quiz_items.get(i)
 
-        if (show_controls or item_large_pos is not None) and x.collidepoint(mouse_klick_pos):
-            play_click()
-            if show_controls:
-                show_controls = False
-                Quiz.game_is_frozen = False
-                timer_start = time.time()
-            else:
-                item_large_pos = None
-                current_item_quiz = None
+        if not show_confirm and (show_controls or item_large_pos is not None) and x.collidepoint(mouse_klick_pos):
+            close_open_window()
 
         mouse_klick_pos = (0, 0)
         if Quiz.quiz_is_open():
@@ -551,7 +567,7 @@ def on_mouse_move(pos):
     mouse_move_pos = pos
 
 def on_mouse_down(pos):
-    global mouse_klick_pos, item_large_pos, current_item_quiz
+    global mouse_klick_pos, item_large_pos, current_item_quiz, show_confirm
 
     if game_started and intro_playing:
         mouse_klick_pos = pos
@@ -561,10 +577,18 @@ def on_mouse_down(pos):
         restart_game()
         play_click()
         return
+    if game_started and not game_over:
+        if show_confirm:
+            mouse_klick_pos = pos
+            return
+        if exit_icon.collidepoint(pos):
+            play_click()
+            show_confirm = "exit"
+            mouse_klick_pos = (0, 0)
+            return
     if Quiz.quiz_is_open():
         if x.collidepoint(pos):
-            close_quiz_with_key_animation()
-            play_click()
+            close_open_window()
         else:
             if Quiz.click_quiz(pos, GAME_WIDTH, GAME_HEIGHT):
                 play_click()
@@ -598,7 +622,19 @@ def quiz_taste_von_key(key):
 def on_key_down(key):
     global game_started, room_index, mute, item_large_pos, current_item_quiz, game_over, escape
 
+    if show_confirm:
+        return
+
+    if key == pygame.K_ESCAPE:
+        if game_started and not intro_playing and not game_over:
+            close_open_window()
+        return
+
     if Quiz.quiz_is_open():
+        if key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            if Quiz.press_key("enter"):
+                play_click()
+            return
         quiz_taste = quiz_taste_von_key(key)
         if quiz_taste is not None:
             Quiz.press_key(quiz_taste)
@@ -790,29 +826,36 @@ def draw_game():
         screen.draw.text("Falsche Antworten kosten Zeit!", topleft=(box_x + 225, box_y + 525), fontsize=30, color="white", fontname="text_regular")
         x.draw()
 
-    #Nachfrage für Help
-    if show_confirm:
-        overlay()
-        Quiz.game_is_frozen = True
-        box_width = 800
-        box_height = 500
-        box_x = (WIDTH - box_width) // 2
-        box_y = (HEIGHT - box_height) // 2
-        draw_image("background_confirm", box_x, box_y, box_width, box_height, transparency=15)
-        screen.draw.text("Brauchst du Hilfe?", center=(box_x + box_width // 2, box_y + 80), fontname="text_bold", fontsize=50, color="white")
-        screen.draw.text("Klicke auf das H\u00e4ckchen um alle Objekte", center=(box_x + box_width // 2, box_y + 140), fontsize=28, color="white", fontname="text_regular")
-        screen.draw.text("im diesem Raum anzuzeigen.", center=(box_x + box_width // 2, box_y + 170), fontsize=28, color="white", fontname="text_regular")
-        screen.draw.text("Achtung!", center=(box_x + box_width // 2, box_y + 250), fontname="text_bold", fontsize=28, color="white")
-        screen.draw.text("Es werden dir aber 2 Minuten abgezogen!", center=(box_x + box_width // 2, box_y + 280), fontsize=28, color="white", fontname="text_regular")
-        confirm_button.draw()
-        reject_button.draw()
-
     #Abdunklung und Quiz zeichnen inkl. Kreuz zum schliesen
     if Quiz.opened_quiz is not None:
         overlay()
         Quiz.draw_quiz(screen, GAME_WIDTH, GAME_HEIGHT, draw_image)
         if Quiz.quiz_is_open():
             x.draw()
+
+    #Nachfrage für Hilfe oder Beenden
+    if show_confirm:
+        overlay()
+        if show_confirm == "help":
+            Quiz.game_is_frozen = True
+        box_width = 800
+        box_height = 500
+        box_x = (WIDTH - box_width) // 2
+        box_y = (HEIGHT - box_height) // 2
+        draw_image("background_confirm", box_x, box_y, box_width, box_height, transparency=15)
+        if show_confirm == "exit":
+            screen.draw.text("Schon aufgeben?", center=(WIDTH / 2, box_y + 80), fontname="text_bold", fontsize=50, color="white")
+            screen.draw.text("M\u00f6chtest du wirklich gehen", center=(WIDTH / 2, box_y + 160), fontsize=28, color="white", fontname="text_regular")
+            screen.draw.text("und dein Date warten lassen?", center=(WIDTH / 2, box_y + 200), fontsize=28, color="white", fontname="text_regular")
+            screen.draw.text("Mit dem H\u00e4kchen beendest du das Spiel.", center=(WIDTH / 2, box_y + 280), fontsize=28, color="white", fontname="text_regular")
+        else:
+            screen.draw.text("Brauchst du Hilfe?", center=(box_x + box_width // 2, box_y + 80), fontname="text_bold", fontsize=50, color="white")
+            screen.draw.text("Klicke auf das H\u00e4ckchen um alle Objekte", center=(box_x + box_width // 2, box_y + 140), fontsize=28, color="white", fontname="text_regular")
+            screen.draw.text("im diesem Raum anzuzeigen.", center=(box_x + box_width // 2, box_y + 170), fontsize=28, color="white", fontname="text_regular")
+            screen.draw.text("Achtung!", center=(box_x + box_width // 2, box_y + 250), fontname="text_bold", fontsize=28, color="white")
+            screen.draw.text("Es werden dir aber 2 Minuten abgezogen!", center=(box_x + box_width // 2, box_y + 280), fontsize=28, color="white", fontname="text_regular")
+        confirm_button.draw()
+        reject_button.draw()
 
     #Timer
     if Quiz.deduction:
@@ -853,7 +896,7 @@ def draw_game():
     screen.draw.text(f"Zimmer {room_index + 1} von 6", center=((WIDTH // 2), 52), fontsize=30, color="white", fontname="text_bold")
 
     #Musik
-    draw_image("background_audio", 1813, 19, 88, 88, transparency=15)
+    draw_image("background_audio", 1706, 19, 88, 88, transparency=15)
     if mute:
         muted_speaker.draw()
         sounds.part1.set_volume(0)
@@ -883,8 +926,12 @@ def draw_game():
             sounds.part3.play(-1)
         current_song = new_song
 
+    #Beenden-Icon (vorerst ohne Funktion)
+    draw_image("background_exit", 1813, 19, 88, 88, transparency=15)
+    exit_icon.draw()
+
     #Helpbutton
-    draw_image("background_help", 1706, 19, 88, 88, transparency=15)
+    draw_image("background_help", 1599, 19, 88, 88, transparency=15)
     help_icon.draw()
 
     #Hotbar

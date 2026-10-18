@@ -128,6 +128,9 @@ def press_key(key):
 
     question = quizzes[opened_quiz]
     if question["rätsel_type"] == "eingabe":
+        if key == "enter":
+            check_input()
+            return True
         answers = input_answers[opened_quiz]
         confirmed = correct_fields[opened_quiz]
         if key == "tab": # KI verwendet für tab Funktion
