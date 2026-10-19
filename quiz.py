@@ -29,7 +29,7 @@ quizzes = {
     },
     "room3_item4": {
         "question": "a) 5. Buchstabe | b) 1. Buchstabe | c) 3. Buchstabe = ?",
-        "correct": ["C", "P", "H"],
+        "correct": ["X", "P", "H"],
         "max_length": 1,
         "rätsel_type": "eingabe"
     },
